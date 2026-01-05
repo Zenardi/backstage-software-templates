@@ -36,6 +36,8 @@ def info():
         'time': datetime.datetime.now().strftime("%I:%M:%S%p  on %B %d, %Y"),
         'hostname': socket.gethostname(),
         'deployed_on': 'kubernetes',
+        'env': '{{values.env}}',
+        'app_name': '{{values.app_name}}'
     })
 
 @app.route('/api/v1/healthz')

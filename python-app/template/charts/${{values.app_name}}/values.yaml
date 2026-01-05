@@ -20,7 +20,7 @@ service:
   port: 5000
 ingress:
   enabled: true
-  className: "nginx"
+  className: "traefik"
   annotations: {}
   hosts:
     - host: ${{values.app_name}}-${{values.app_env}}.test.com
