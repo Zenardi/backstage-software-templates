@@ -42,7 +42,8 @@ jobs:
         shell: bash
         run: |
           echo ${{ '${{needs.ci.outputs.commit_id}}' }}
-          pip install yq
+          sudo apt update && sudo apt install -y python3-pip
+          pip install --break-system-packages yq
           yq -Yi '.image.tag = "${{'${{needs.ci.outputs.commit_id}}' }}"' charts/${{values.app_name}}/values-${{values.app_env}}.yaml
 
       - name: Commit changes
