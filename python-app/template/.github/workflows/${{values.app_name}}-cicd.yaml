@@ -72,7 +72,7 @@ jobs:
         run: |
 
           # Connects the argocd repo
-          repo="https://github.com/Zenardi/${{values.app_name}}.git"
+          repo="https://github.com/zenardi-org/${{values.app_name}}.git"
           argocd repo list | grep -q $repo || argocd repo add $repo
 
           # Creates the argocd app
