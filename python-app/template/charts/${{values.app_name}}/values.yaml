@@ -1,6 +1,6 @@
 replicaCount: 1
 image:
-  repository: Zenardi07/${{values.app_name}}
+  repository: Zenardi/${{values.app_name}}
   pullPolicy: IfNotPresent
   tag: ${{values.app_name}}-${{values.app_env}}-latest
 imagePullSecrets: []
