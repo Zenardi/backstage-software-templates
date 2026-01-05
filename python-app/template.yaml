@@ -44,7 +44,7 @@ spec:
         # allowedHosts:
         #   - github.com
         description: This is ${{ parameters.component_id }}
-        repoUrl: github.com?owner=Zenardi&repo=${{parameters.component_id}}
+        repoUrl: github.com?owner=zenardi-org&repo=${{parameters.component_id}}
         protectDefaultBranch: false
         repoVisibility: public
 
