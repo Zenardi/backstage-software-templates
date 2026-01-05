@@ -41,8 +41,8 @@ spec:
       name: Publish
       action: publish:github
       input:
-        allowedHosts:
-          - github.com
+        # allowedHosts:
+        #   - github.com
         description: This is ${{ parameters.component_id }}
         repoUrl: github.com?owner=Zenardi&repo=${{parameters.component_id}}
         protectDefaultBranch: false
