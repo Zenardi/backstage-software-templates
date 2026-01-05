@@ -27,7 +27,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: Zenardi07/${{values.app_name}}:${{ '${{ env.COMMIT_ID }}' }}
+          tags: Zenardi/${{values.app_name}}:${{ '${{ env.COMMIT_ID }}' }}
     outputs:
       commit_id: ${{ '${{ env.COMMIT_ID }}' }}
 
