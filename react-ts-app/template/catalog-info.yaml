@@ -6,10 +6,15 @@ metadata:
   annotations:
     github.com/project-slug: zenardi-org/${{values.app_name}}
     backstage.io/techdocs-ref: dir:.
+  links:
+    - url: http://${{values.domain_name}}
+      title: ${{values.app_name}} Website
+      icon: dashboard
+      type: admin-dashboard
+  tags:
+    - react
+    - typescript
 spec:
   type: website
   owner: development
   lifecycle: experimental
-  tags:
-    - react
-    - typescript
