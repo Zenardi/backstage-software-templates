@@ -29,6 +29,18 @@ spec:
           image: ${{values.image_registry}}/${{values.app_name}}:latest
           ports:
             - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 20
           resources:
             requests:
               cpu: "100m"

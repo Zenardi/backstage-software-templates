@@ -23,12 +23,17 @@ spec:
         - hpa_min_replicas
         - hpa_max_replicas
         - hpa_avg_cpu_utilization
+        - app_description
       properties:
         component_id:
           title: Component name
           type: string
-          description: Provide a component (microservice) name
+          description: Provide App name
           pattern: '^([a-zA-Z][a-zA-Z0-9]*)(-[a-zA-Z0-9]+)*$'
+        app_description:
+          title: Application Description
+          type: string
+          description: A short description of the application
         environment:
           title: Environment
           type: string
@@ -77,6 +82,7 @@ spec:
         url: ./template
         values:
           app_name: ${{parameters.component_id}}
+          app_description: ${{parameters.app_description}}
           app_env: ${{parameters.environment}}
           deploy_replicas: ${{parameters.deploy_replicas}}
           image_registry: ${{parameters.image_registry}}

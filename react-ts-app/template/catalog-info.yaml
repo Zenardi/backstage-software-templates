@@ -2,7 +2,7 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: ${{values.app_name}}
-  description: ${{values.description}}
+  description: '${{values.app_description}}'
   annotations:
     github.com/project-slug: zenardi-org/${{values.app_name}}
     backstage.io/techdocs-ref: dir:.
