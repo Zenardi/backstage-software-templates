@@ -1,1 +1,8 @@
 .vscode
+/node-modules
+.DS_Store
+dist
+.env
+build
+.idea
+*.log
