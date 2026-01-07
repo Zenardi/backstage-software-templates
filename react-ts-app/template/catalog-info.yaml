@@ -7,7 +7,7 @@ metadata:
     github.com/project-slug: zenardi-org/${{values.app_name}}
     backstage.io/techdocs-ref: dir:.
 spec:
-  type: service
+  type: website
   owner: development
   lifecycle: experimental
   tags:
