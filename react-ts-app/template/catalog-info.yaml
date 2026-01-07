@@ -16,5 +16,5 @@ metadata:
     - typescript
 spec:
   type: website
-  owner: development
+  owner: group:development
   lifecycle: experimental
