@@ -8,7 +8,7 @@ metadata:
     backstage.io/techdocs-ref: dir:.
   links:
     - url: http://${{values.domain_name}}
-      title: ${{values.app_name}} Website
+      title: ${{values.app_name}} Link
       icon: dashboard
       type: admin-dashboard
   tags:
@@ -16,5 +16,5 @@ metadata:
     - typescript
 spec:
   type: website
-  owner: development
+  owner: group:development
   lifecycle: experimental
