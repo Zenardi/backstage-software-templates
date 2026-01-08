@@ -1,0 +1,20 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: crossplane-aws-s3-provider
+  description: Manages AWS S3 buckets using Crossplane.
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+  tags:
+    - aws
+    - s3
+    - crossplane
+    - infrastructure
+spec:
+  type: crossplane-xr
+  owner: group:default/development
+  lifecycle: experimental
+  dependsOn:
+    # This component depends on a Crossplane provider being installed.
+    # The entity name 'crossplane-provider-aws' is an example.
+    - resource:default/crossplane-provider-aws
