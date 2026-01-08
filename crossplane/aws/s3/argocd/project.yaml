@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: s3-test
+  namespace: argocd
+spec:
+  description: "S3 Test Project"
+  
+  # Allow applications in this project to deploy to any namespace on the local cluster.
+  destinations:
+  - server: https://kubernetes.default.svc
+    namespace: '*'
+
+  # Allow applications in this project to sync from a specific Git repository.
+  sourceRepos:
+  - 'https://github.com/Zenardi/backstage-software-templates.git'
+
+  # Define which cluster-level resources can be managed. By default, nothing is allowed.
+  # This example allows managing Namespaces.
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+
+  # Define which namespaced resources can be managed.
+  # This is a good practice to restrict permissions.
+  # For example, to allow only Deployments and Services:
+  # namespaceResourceWhitelist:
+  # - group: 'apps'
+  #   kind: 'Deployment'
+  # - group: ''
+  #   kind: 'Service'

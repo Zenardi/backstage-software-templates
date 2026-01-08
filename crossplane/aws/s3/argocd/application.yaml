@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: s3-resources
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: s3-test
+  source:
+    # This should be the URL of the repository where these manifests are stored.
+    # For example: https://github.com/my-org/my-repo.git
+    repoURL: EDIT_ME
+    path: crossplane/aws/s3
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: s3-test
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
