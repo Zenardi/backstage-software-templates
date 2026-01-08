@@ -18,8 +18,12 @@ spec:
   # Define which cluster-level resources can be managed. By default, nothing is allowed.
   # This example allows managing Namespaces.
   clusterResourceWhitelist:
-  - group: ''
-    kind: Namespace
+  - group: 'pkg.crossplane.io'
+    kind: 'Provider'
+  - group: 'aws.m.upbound.io'
+    kind: 'ClusterProviderConfig'
+  - group: '' # The empty group means the core Kubernetes API
+    kind: 'Namespace'
 
   # Define which namespaced resources can be managed.
   # This is a good practice to restrict permissions.

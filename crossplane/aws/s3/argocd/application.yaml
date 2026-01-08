@@ -1,16 +1,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: s3-resources
+  name: s3-test-resources
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: s3-test
   source:
-    # This should be the URL of the repository where these manifests are stored.
-    # For example: https://github.com/my-org/my-repo.git
-    repoURL: EDIT_ME
+    repoURL: https://github.com/Zenardi/backstage-software-templates.git
     path: crossplane/aws/s3
     targetRevision: HEAD
   destination:
