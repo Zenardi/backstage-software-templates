@@ -16,9 +16,6 @@ metadata:
   description: Manages AWS S3 buckets using Crossplane.
   annotations:
     backstage.io/techdocs-ref: dir:.
-    # This annotation tells the plugin which Crossplane Claim to find in the cluster.
-    # The format is typically 'namespace/name'.
-    crossplane.io/claim: "s3-test/crossplane-bucket-xyz-12345"
   tags:
     - aws
     - s3
