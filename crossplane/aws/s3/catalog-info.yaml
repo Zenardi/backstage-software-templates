@@ -1,4 +1,15 @@
 apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: crossplane-provider-aws
+  description: The Crossplane provider for AWS.
+spec:
+  type: crossplane-provider
+  owner: group:default/platform-engineering
+
+---
+
+apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: crossplane-aws-s3-provider
@@ -16,5 +27,4 @@ spec:
   lifecycle: experimental
   dependsOn:
     # This component depends on a Crossplane provider being installed.
-    # The entity name 'crossplane-provider-aws' is an example.
     - resource:default/crossplane-provider-aws
