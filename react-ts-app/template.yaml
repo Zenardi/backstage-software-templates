@@ -13,17 +13,13 @@ spec:
   type: service
 
   parameters:
-    - title: Fill in some steps
+    - title: App Info
       required:
         - component_id
         - environment
-        - deploy_replicas
-        - image_registry
-        - domain_name
-        - hpa_min_replicas
-        - hpa_max_replicas
-        - hpa_avg_cpu_utilization
         - app_description
+        - owner
+        - image_registry
       properties:
         component_id:
           title: Component name
@@ -43,16 +39,51 @@ spec:
             - dev
             - staging
             - prod
+        image_registry:
+          title: Image Registry (ContainerRegistry/ImageName, e.g. docker.io/your-app)
+          type: string
+          description: Container image registry URL
+          default: docker.io/zenardi
+        owner:
+          title: Owner
+          type: string
+          description: Owner of the component
+          ui:field: OwnerPicker
+          ui:options:
+            catalogFilter:
+              kind: [Group, User]
+
+
+    - title: Select Repo
+      required:
+        - orgName
+      properties:
+        orgName:
+          title: GitHub Organization Name
+          type: string
+          description: The name of the organization in GitHub or Azure DevOps
+          default: zenardi-org
+        repoUrl:
+          title: Repository Location
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+
+    - title: Kubernetes Deployment Specs
+      required: 
+        - deploy_replicas
+        - domain_name
+        - hpa_min_replicas
+        - hpa_max_replicas
+        - hpa_avg_cpu_utilization
+      properties:
         deploy_replicas:
           title: Deployment Replicas
           type: number
           description: Number of replicas for the deployment
           default: 2
-        image_registry:
-          title: Image Registry
-          type: string
-          description: Container image registry URL
-          default: docker.io/zenardi
         domain_name:
           title: Domain Name
           type: string
@@ -73,6 +104,7 @@ spec:
           type: number
           description: Average CPU utilization percentage for triggering scaling (0-100)
           default: 70
+        
 
   steps:
     - id: fetch-base
@@ -90,6 +122,9 @@ spec:
           hpa_min_replicas: ${{parameters.hpa_min_replicas}}
           hpa_max_replicas: ${{parameters.hpa_max_replicas}}
           hpa_avg_cpu_utilization: ${{parameters.hpa_avg_cpu_utilization}}
+          owner: ${{parameters.owner}}
+          orgName: ${{parameters.orgName}}
+
 
     - id: publish
       name: Publish
