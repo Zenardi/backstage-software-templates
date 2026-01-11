@@ -1,4 +1,4 @@
-name: ${{values.bucket_name}}-cicd
+name: ${{values.bucket_name}}-deployment
 
 on:
   push:
