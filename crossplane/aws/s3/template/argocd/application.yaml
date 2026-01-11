@@ -6,7 +6,7 @@ metadata:
 spec:
   project: ${{values.project_name.split('/')[1]}}
   source:
-    repoURL: https://${{values.repo_url}}.git
+    repoURL: https://github.com/${{values.destination.owner + "/" + values.destination.repo}}.git
     targetRevision: main
     path: .
   destination:

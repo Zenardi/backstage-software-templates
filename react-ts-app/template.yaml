@@ -143,6 +143,7 @@ spec:
           owner: ${{parameters.owner}}
           orgName: ${{parameters.orgName}}
           project_name: ${{parameters.project_name}}
+          destination: ${{ parameters.repoUrl | parseRepoUrl }}
 
 
 
@@ -151,7 +152,7 @@ spec:
       action: publish:github
       input:
         description: "A React (TypeScript) application: ${{ parameters.component_id }}"
-        repoUrl: github.com?owner=zenardi-org&repo=${{parameters.component_id}}
+        repoUrl: ${{ parameters.repoUrl }}
         protectDefaultBranch: false
         repoVisibility: public
 

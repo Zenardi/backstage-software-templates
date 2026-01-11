@@ -28,7 +28,7 @@ metadata:
   name: ${{values.bucket_name}}
   description: ${{values.description}}
   annotations:
-    github.com/project-slug: ${{values.repo_url}}
+    github.com/project-slug: ${{values.destination.owner + "/" + values.destination.repo}}
     backstage.io/techdocs-ref: dir:.
   tags:
     - aws

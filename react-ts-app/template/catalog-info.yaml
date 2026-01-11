@@ -4,7 +4,7 @@ metadata:
   name: ${{values.app_name}}
   description: '${{values.app_description}}'
   annotations:
-    github.com/project-slug: ${{values.orgName}}/${{values.app_name}}
+    github.com/project-slug: ${{values.destination.owner + "/" + values.destination.repo}}
     backstage.io/techdocs-ref: dir:.
     grafana/dashboard-selector: "title == '${{values.app_name}}'"
     grafana/alert-label-selector: "app=${{values.app_name}}"

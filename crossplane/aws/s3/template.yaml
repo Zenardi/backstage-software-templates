@@ -46,7 +46,7 @@ spec:
             - ap-southeast-1
             - ap-southeast-2
             - ap-northeast-1
-        repo_url:
+        repoUrl:
           title: Repository URL
           type: string
           ui:field: RepoUrlPicker
@@ -87,13 +87,13 @@ spec:
           description: ${{ parameters.description }}
           owner: ${{ parameters.owner }}
           project_name: ${{ parameters.project }}
-          repo_url: ${{ parameters.repo_url }}
+          destination: ${{ parameters.repoUrl | parseRepoUrl }}
           org_name: ${{ parameters.org_name }}
     - id: publish
       name: Publish
       action: publish:github
       input:
-        repoUrl: ${{ parameters.repo_url }}
+        repoUrl: ${{ parameters.repoUrl }}
         protectDefaultBranch: false
         repoVisibility: public
 
