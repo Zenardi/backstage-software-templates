@@ -43,3 +43,8 @@ spec:
   dependsOn:
     - resource:default/crossplane-provider-aws-s3
     - resource:default/kubernetes-cluster
+  links:
+    - url: https://${{values.bucket_region}}.console.aws.amazon.com/s3/buckets/${{values.bucket_name}}?region=${{values.bucket_region}}&tab=objects
+      title: AWS S3
+    - url: https://argocd.local/applications/argocd/${{values.bucket_name}}?view=tree&resource=kind%3ABucket
+      title: ArgoCD

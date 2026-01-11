@@ -3,13 +3,12 @@ kind: Application
 metadata:
   name: ${{values.bucket_name}}
   namespace: argocd
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
 spec:
   project: ${{values.project_name}}
   source:
     repoURL: https://${{values.repo_url}}.git
     targetRevision: HEAD
+    path: .
   destination:
     server: https://kubernetes.default.svc
     namespace: ${{values.project_name}}

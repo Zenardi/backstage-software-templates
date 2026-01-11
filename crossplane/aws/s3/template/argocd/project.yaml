@@ -12,8 +12,8 @@ spec:
     namespace: '*'
 
   # Allow applications in this project to sync from a specific Git repository.
-  sourceRepos:
-  - 'https://${{values.repo_url}}.git'
+  sourceRepos: 
+  - '*'
 
   # Define which cluster-level resources can be managed. By default, nothing is allowed.
   # This example allows managing Namespaces.
