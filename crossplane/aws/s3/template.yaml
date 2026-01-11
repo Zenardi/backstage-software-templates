@@ -72,6 +72,10 @@ spec:
           type: string
           description: The Project this S3 bucket is associated with.
           pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+          ui:field: OwnerPicker
+          ui:options:
+            allowedKinds:
+              - System
           ui:help: Must be a valid Kubernetes namespace name (lowercase alphanumeric, hyphens allowed, no leading/trailing hyphens).
   steps:
     - id: template
