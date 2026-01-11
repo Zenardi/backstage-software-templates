@@ -2,8 +2,8 @@ apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
   name: react-ts-app
-  title: React (TypeScript) App
-  description: Provision a React (TypeScript) application with a CI/CD pipeline in Kubernetes
+  title: Create React App
+  description: Provision a React (TypeScript) application with a CI/CD pipeline and deploy in Kubernetes
   tags:
     - react
     - typescript
@@ -79,16 +79,22 @@ spec:
         - hpa_max_replicas
         - hpa_avg_cpu_utilization
       properties:
+        k8s_address:
+          title: Kubernetes Cluster Address
+          type: string
+          description: The address of the Kubernetes cluster
+          default: https://kubernetes.default.svc.cluster.local:443
+        k8s_connection_string:
+          title: Kubernetes Connection String
+          type: string
+          description: The connection string or token for accessing the Kubernetes cluster
+          default: ""
+          ui:field: Secret
         deploy_replicas:
           title: Deployment Replicas
           type: number
           description: Number of replicas for the deployment
           default: 2
-        domain_name:
-          title: Domain Name
-          type: string
-          description: The domain name for the application
-          default: local.com
         hpa_min_replicas:
           title: Horizontal Pod Autoscaler Minimum Replicas
           type: number
@@ -104,6 +110,11 @@ spec:
           type: number
           description: Average CPU utilization percentage for triggering scaling (0-100)
           default: 70
+        domain_name:
+          title: Domain Name
+          type: string
+          description: The domain name for the application
+          default: local.com
         
 
   steps:
