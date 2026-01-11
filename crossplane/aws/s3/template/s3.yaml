@@ -1,11 +1,11 @@
 apiVersion: s3.aws.m.upbound.io/v1beta1
 kind: Bucket
 metadata:
-  namespace: s3-test
-  name: crossplane-bucket-xyz-12345
+  namespace: ${{values.project}}
+  name: ${{values.bucket_name}}
 spec:
   forProvider:
-    region: us-east-1
+    region: ${{values.bucket_region}}
   providerConfigRef:
     name: aws
     kind: ClusterProviderConfig

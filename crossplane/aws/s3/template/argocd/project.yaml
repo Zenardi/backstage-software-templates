@@ -1,10 +1,10 @@
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: s3-test
+  name: ${{values.project_name}}
   namespace: argocd
 spec:
-  description: "S3 Test Project"
+  description: ${{values.project_name}}
   
   # Allow applications in this project to deploy to any namespace on the local cluster.
   destinations:
@@ -13,7 +13,7 @@ spec:
 
   # Allow applications in this project to sync from a specific Git repository.
   sourceRepos:
-  - 'https://github.com/Zenardi/backstage-software-templates.git'
+  - '${{values.repo_url}}.git'
 
   # Define which cluster-level resources can be managed. By default, nothing is allowed.
   # This example allows managing Namespaces.

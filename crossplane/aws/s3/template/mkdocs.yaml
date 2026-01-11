@@ -1,0 +1,12 @@
+site_name: '${{values.bucket_name}}'
+site_description: 'Main documentation for the ${{values.bucket_name}}'
+repo_url: https://github.com/${values.org_name}/${{values.bucket_name}}
+edit_uri: edit/main/docs
+
+plugins:
+  - techdocs-core
+
+# For sidebar navigation on https://backstage.io/, see `microsite/sidebars.json`
+nav:
+  - Overview:
+      - Getting started: 'docs/index.md'

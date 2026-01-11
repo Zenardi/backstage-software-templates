@@ -1,0 +1,109 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: crossplane-aws-s3-bucket
+  title: Create AWS S3 Bucket
+  description: Deploy an AWS S3 bucket using Crossplane. This component requires for you to install ClusterProviderConfig on the target cluster first.
+  tags:
+    - crossplane
+    - aws
+    - s3
+    - infrastructure
+spec:
+  type: crossplane-xr
+  owner: group:default/platform-engineering
+  lifecycle: experimental
+  parameters:
+    - title: S3 Bucket Details
+      required:
+        - bucket_name
+        - bucket_region
+        - description
+        - owner
+        - project
+        - org_name
+      properties:
+        bucket_name:
+          title: S3 Bucket Name
+          type: string
+          description: Unique name for the S3 bucket.
+          ui:autofocus: true
+        description:
+          title: Description
+          type: string
+          description: A brief description of the S3 bucket.
+        bucket_region:
+          title: AWS Region
+          type: string
+          description: The AWS region where the S3 bucket will be created.
+          enum:
+            - us-east-1
+            - us-east-2
+            - us-west-1
+            - us-west-2        
+            - eu-west-1
+            - eu-central-1
+            - ap-southeast-1
+            - ap-southeast-2
+            - ap-northeast-1
+        repo_url:
+          title: Repository URL
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+        org_name:
+          title: Organization Name
+          type: string
+          description: The GitHub organization or user name where the repository will be created.
+          default: zenardi-org
+        owner:
+          title: Owner
+          type: string
+          description: Owner of the S3 bucket.
+          ui:field: OwnerPicker
+          ui:options:
+            allowedKinds:
+              - Group
+              - User
+        project:
+          title: Project Name
+          type: string
+          description: The Project this S3 bucket is associated with.
+          pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+          ui:help: Must be a valid Kubernetes namespace name (lowercase alphanumeric, hyphens allowed, no leading/trailing hyphens).
+  steps:
+    - id: template
+      name: Fetch Skeleton + Template
+      action: fetch:template
+      input:
+        url: ./template
+        values:
+          bucket_name: ${{ parameters.bucket_name }}
+          bucket_region: ${{ parameters.bucket_region }}
+          description: ${{ parameters.description }}
+          owner: ${{ parameters.owner }}
+          project_name: ${{ parameters.project }}
+          repo_url: ${{ parameters.repo_url }}
+          org_name: ${{ parameters.org_name }}
+    - id: publish
+      name: Publish
+      action: publish:github
+      input:
+        allowedHosts: ['github.com']
+        repoUrl: ${{ parameters.repo_url }}
+    - id: register
+      name: Register
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: "/catalog-info.yaml"
+  output:
+    links:
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}
+      - title: Open GitHub Repository
+        icon: code
+        url: ${{ steps.publish.output.remoteUrl }}

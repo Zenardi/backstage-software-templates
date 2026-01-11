@@ -1,0 +1,45 @@
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: kubernetes-cluster
+  description: Kubernetes Cluster
+spec:
+  type: kubernetes-cluster
+  owner: group:default/platform-engineering
+  system: ${{values.project_name}}
+
+---
+
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: crossplane-provider-aws-s3
+  description: The Crossplane provider for AWS S3.
+spec:
+  type: crossplane-provider
+  owner: group:default/platform-engineering
+
+---
+
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${{values.bucket_name}}
+  description: ${{values.description}}
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+  tags:
+    - aws
+    - s3
+    - crossplane
+    - infrastructure
+    - iac
+spec:
+  type: crossplane-xr
+  owner: ${{values.owner}}
+  lifecycle: experimental
+  system: ${{values.project_name}}
+  dependsOn:
+    - resource:default/crossplane-provider-aws-s3
+    - resource:default/kubernetes-cluster

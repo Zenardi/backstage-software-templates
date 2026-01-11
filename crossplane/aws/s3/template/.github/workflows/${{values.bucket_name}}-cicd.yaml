@@ -1,0 +1,50 @@
+name: ${{values.bucket_name}}-cicd
+
+on:
+  push:
+    paths:
+      - s3.yaml
+      - argocd/**
+    branches:
+      - main
+
+jobs:
+  cd:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install argocd
+        shell: bash
+        run: |
+          curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+          chmod +x argocd
+          sudo mv ./argocd /usr/local/bin/argocd
+
+      - name: argocd login
+        shell: bash
+        run: |
+          argocd login argocd-server.argocd \
+            --plaintext \
+            --grpc-web \
+            --username admin \
+            --password  ${{ '${{ secrets.ARGOCD_PASSWORD }}' }}
+
+      - name: Apply Crossplane S3 Resource
+        run: |
+          kubectl apply -f s3.yaml
+
+      - name: Ensure ArgoCD Project
+        shell: bash
+        run: |
+          kubectl apply -f argocd/project.yaml
+
+      - name: Ensure ArgoCD Application
+        shell: bash
+        run: |
+          kubectl apply -f argocd/application.yaml
+
+      - name: Argocd app sync
+        shell: bash
+        run: |
+          argocd app sync ${{values.bucket_name}}
