@@ -28,6 +28,7 @@ metadata:
   name: ${{values.bucket_name}}
   description: ${{values.description}}
   annotations:
+    github.com/project-slug: ${{values.repo_url}}
     backstage.io/techdocs-ref: dir:.
   tags:
     - aws
@@ -41,7 +42,7 @@ metadata:
     - url: https://argocd.local/applications/argocd/${{values.bucket_name}}?view=tree&resource=kind%3ABucket
       title: ArgoCD
 spec:
-  type: crossplane-xr
+  type: service # crossplane-xr
   owner: ${{values.owner}}
   lifecycle: experimental
   system: ${{values.project_name}}
