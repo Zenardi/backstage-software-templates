@@ -165,6 +165,9 @@ spec:
 
   output:
     links:
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}
       - title: Repository
         url: ${{ steps['publish'].output.remoteUrl }}
         icon: 'github'

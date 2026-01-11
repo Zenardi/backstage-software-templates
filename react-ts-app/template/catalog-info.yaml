@@ -13,6 +13,10 @@ metadata:
       title: ${{values.app_name}} Link
       icon: dashboard
       type: admin-dashboard
+    - url: https://argocd.local/applications/argocd/${{values.app_name}}?view=tree&resource=
+      title: ArgoCD
+      icon: dashboard
+      type: admin-dashboard
   tags:
     - react
     - typescript
