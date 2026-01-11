@@ -4,14 +4,14 @@ metadata:
   name: ${{values.bucket_name}}
   namespace: argocd
 spec:
-  project: ${{values.project_name}}
+  project: ${{values.project_name.split('/')[1]}}
   source:
     repoURL: https://${{values.repo_url}}.git
     targetRevision: main
     path: .
   destination:
     server: https://kubernetes.default.svc
-    namespace: ${{values.project_name}}
+    namespace: ${{values.project_name.split('/')[1]}}
   syncPolicy:
     automated:
       prune: true

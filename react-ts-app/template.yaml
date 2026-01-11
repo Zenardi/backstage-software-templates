@@ -53,9 +53,9 @@ spec:
             catalogFilter:
               kind: [Group, User]
         project_name:
-          title: Project Name
+          title: Project/System Name
           type: string
-          description: Project name
+          description: Project/System name to which the component belongs
           ui:field: OwnerPicker
           ui:options:
             catalogFilter:
