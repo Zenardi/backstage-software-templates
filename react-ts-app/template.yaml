@@ -9,7 +9,7 @@ metadata:
     - typescript
     - kubernetes
 spec:
-  owner: development
+  owner: group:default/platform-engineering
   type: service
 
   parameters:

@@ -5,7 +5,7 @@ metadata:
   title: Python flask template
   description: Provisions a minimalistic flask application
 spec:
-  owner: development
+  owner: group:default/platform-engineering
   type: service
 
   parameters:
