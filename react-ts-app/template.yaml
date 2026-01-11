@@ -52,7 +52,14 @@ spec:
           ui:options:
             catalogFilter:
               kind: [Group, User]
-
+        project_name:
+          title: Project Name
+          type: string
+          description: Project name
+          ui:field: OwnerPicker
+          ui:options:
+            catalogFilter:
+              kind: [System]
 
     - title: Select Repo
       required:
@@ -135,6 +142,8 @@ spec:
           hpa_avg_cpu_utilization: ${{parameters.hpa_avg_cpu_utilization}}
           owner: ${{parameters.owner}}
           orgName: ${{parameters.orgName}}
+          project_name: ${{parameters.project_name}}
+
 
 
     - id: publish

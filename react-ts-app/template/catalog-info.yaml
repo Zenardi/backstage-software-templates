@@ -20,3 +20,4 @@ spec:
   type: website
   owner: ${{values.owner}}
   lifecycle: experimental
+  system: ${{values.project_name}}
