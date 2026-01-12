@@ -1,14 +1,35 @@
 apiVersion: backstage.io/v1alpha1
-kind: Component
+kind: API
 metadata:
-  name: ${{values.component_id | dump}}
-  {%- if values.description %}
-  description: ${{values.description | dump}}
-  {%- endif %}
+  name: ${{values.app_name}}
+  description: '${{values.app_description}}'
   annotations:
     github.com/project-slug: ${{values.destination.owner + "/" + values.destination.repo}}
     backstage.io/techdocs-ref: dir:.
+    grafana/dashboard-selector: "title == '${{values.app_name}}'"
+    grafana/alert-label-selector: "app=${{values.app_name}}"
+    backstage.io/kubernetes-id: ${{values.targetCluster}}
+    deployment-target-cluster: ${{values.targetCluster}}
+    backstage.io/kubernetes-namespace: ${{values.project_name.split('/')[1]}}
+
+  links:
+    - url: http://${{values.domain_name}}
+      title: ${{values.app_name}} REST API
+      icon: dashboard
+      type: admin-dashboard
+    - url: https://argocd.local/applications/argocd/${{values.app_name}}?view=tree&resource=
+      title: ArgoCD
+      icon: dashboard
+      type: admin-dashboard
+  tags:
+    - java
+    - grpc
+    - springboot
+    - microservice
+
 spec:
-  type: service
+  type: openapi
   lifecycle: experimental
-  owner: ${{values.owner | dump}}
+  owner: ${{values.owner}}
+  definition:
+    $text: http://${{values.domain_name}}/v3/api-docs

@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: demo
+  threads:
+    virtual:
+      enabled: true
+# gRPC specific settings
+  grpc:
+    server:
+      port: 9090
+      # In 2026, reflection is often disabled by default in production.
+      # Enable it for development to use tools like Postman/BloomRPC.
+      reflection-enabled: true
+
+server:
+  port: 8080
+  http2:
+    enabled: true  # <--- THIS IS REQUIRED for gRPC over Servlet (Port 8080)
+
+# Swagger/OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    tags-sorter: alpha
+    operations-sorter: alpha
+  show-actuator: false

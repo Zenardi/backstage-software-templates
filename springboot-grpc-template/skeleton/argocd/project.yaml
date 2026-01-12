@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: ${{values.project_name.split('/')[1]}}
+  namespace: argocd
+spec:
+  description: ${{values.project_name.split('/')[1]}} Project
+  
+  # Allow applications in this project to deploy to any namespace on the local cluster.
+  destinations:
+  - server: https://kubernetes.default.svc
+    namespace: '*'
+
+  # Allow applications in this project to sync from a specific Git repository.
+  sourceRepos: 
+  - '*'
+
+  # Define which cluster-level resources can be managed. By default, nothing is allowed.
+  # This example allows managing Namespaces.
+  clusterResourceWhitelist:
+  - group: 'pkg.crossplane.io'
+    kind: 'Provider'
+  - group: 'aws.m.upbound.io'
+    kind: 'ClusterProviderConfig'
+  - group: '' # The empty group means the core Kubernetes API
+    kind: 'Namespace'
+
+  # Define which namespaced resources can be managed.
+  # This is a good practice to restrict permissions.
+  # For example, to allow only Deployments and Services:
+  # namespaceResourceWhitelist:
+  # - group: 'apps'
+  #   kind: 'Deployment'
+  # - group: ''
+  #   kind: 'Service'
