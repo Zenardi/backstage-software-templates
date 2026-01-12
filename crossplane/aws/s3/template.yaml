@@ -67,14 +67,29 @@ spec:
             allowedKinds:
               - Group
               - User
+
         project:
-          title: Project/System Name
+          title: Team Responsible
           type: string
-          description: The Project/System this S3 bucket is associated with.
-          ui:field: OwnerPicker
+          description: The Team responsible for this resource.
+          ui:field: EntityPicker
           ui:options:
-            allowedKinds:
-              - System
+            allowArbitraryValues: false
+            catalogFilter:
+              - kind: Group
+                'spec.type': team
+
+        targetCluster:
+          title: Deploy To Kubernetes Cluster
+          type: string
+          description: Pick Kubernetes Cluster
+          ui:field: EntityPicker
+          ui:options:
+            allowArbitraryValues: false
+            catalogFilter:
+              - kind: Resource
+                'spec.type': kubernetes-cluster
+
   steps:
     - id: template
       name: Fetch Skeleton + Template
@@ -89,6 +104,8 @@ spec:
           project_name: ${{ parameters.project }}
           destination: ${{ parameters.repoUrl | parseRepoUrl }}
           org_name: ${{ parameters.org_name }}
+          targetCluster: ${{parameters.targetCluster}}
+
     - id: publish
       name: Publish
       action: publish:github

@@ -4,6 +4,8 @@ metadata:
   name: ${{values.project_name.split('/')[1]}}
   labels:
     environment: ${{values.app_env}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{ values.targetCluster }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -13,6 +15,8 @@ metadata:
   labels:
     app: ${{values.app_name}}
     environment: ${{values.app_env}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{ values.targetCluster }}
 spec:
   replicas: ${{values.deploy_replicas}}
   selector:
@@ -56,6 +60,8 @@ metadata:
   namespace: ${{values.project_name.split('/')[1]}}
   labels:
     environment: ${{values.app_env}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{ values.targetCluster }}
 spec:
   selector:
     app: ${{values.app_name}}
@@ -72,6 +78,8 @@ metadata:
   namespace: ${{values.project_name.split('/')[1]}}
   labels:
     environment: ${{values.app_env}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{ values.targetCluster }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -96,6 +104,7 @@ metadata:
     environment: ${{values.app_env}}
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: web
+    backstage.io/kubernetes-cluster: ${{ values.targetCluster }}
 spec:
   ingressClassName: traefik
   rules:

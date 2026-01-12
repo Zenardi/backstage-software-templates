@@ -8,6 +8,12 @@ metadata:
     backstage.io/techdocs-ref: dir:.
     grafana/dashboard-selector: "title == '${{values.app_name}}'"
     grafana/alert-label-selector: "app=${{values.app_name}}"
+    
+    # Kubernetes cluster linkage (from your template field)
+    backstage.io/kubernetes-id: ${{values.targetCluster}}
+    deployment-target-cluster: ${{values.targetCluster}}
+    backstage.io/kubernetes-namespace: ${{values.project_name.split('/')[1]}}
+
   links:
     - url: http://${{values.domain_name}}
       title: ${{values.app_name}} Link
@@ -25,3 +31,5 @@ spec:
   owner: ${{values.owner}}
   lifecycle: experimental
   system: ${{values.project_name}}
+  dependsOn:
+    - ${{values.targetCluster}}

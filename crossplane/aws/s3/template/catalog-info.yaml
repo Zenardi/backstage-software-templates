@@ -1,13 +1,13 @@
----
-apiVersion: backstage.io/v1alpha1
-kind: Resource
-metadata:
-  name: kubernetes-cluster
-  description: Kubernetes Cluster
-spec:
-  type: kubernetes-cluster
-  owner: group:default/platform-engineering
-  system: ${{values.project_name}}
+# ---
+# apiVersion: backstage.io/v1alpha1
+# kind: Resource
+# metadata:
+#   name: kubernetes-cluster
+#   description: Kubernetes Cluster
+# spec:
+#   type: kubernetes-cluster
+#   owner: group:default/platform-engineering
+#   system: ${{values.project_name}}
 
 ---
 
@@ -30,6 +30,14 @@ metadata:
   annotations:
     github.com/project-slug: ${{values.destination.owner + "/" + values.destination.repo}}
     backstage.io/techdocs-ref: dir:.
+
+    # Kubernetes cluster linkage (from your template field)
+    backstage.io/kubernetes-id: ${{values.targetCluster}}
+    deployment-target-cluster: ${{values.targetCluster}}
+    backstage.io/kubernetes-namespace: ${{values.project_name.split('/')[1]}}
+    
+    # Infrastructure as Code
+    # crossplane.io/claim-name: ${{values.bucket_name}}
   tags:
     - aws
     - s3
@@ -48,5 +56,4 @@ spec:
   system: ${{values.project_name}}
   dependsOn:
     - resource:default/crossplane-provider-aws-s3
-    - resource:default/kubernetes-cluster
-
+    - ${{values.targetCluster}}

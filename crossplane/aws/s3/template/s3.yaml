@@ -3,6 +3,8 @@ kind: Bucket
 metadata:
   namespace: ${{values.project_name.split('/')[1]}}
   name: ${{values.bucket_name}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{ values.targetCluster }}
 spec:
   forProvider:
     region: ${{values.bucket_region}}
