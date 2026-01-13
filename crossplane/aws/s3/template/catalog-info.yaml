@@ -1,16 +1,3 @@
-# ---
-# apiVersion: backstage.io/v1alpha1
-# kind: Resource
-# metadata:
-#   name: kubernetes-cluster
-#   description: Kubernetes Cluster
-# spec:
-#   type: kubernetes-cluster
-#   owner: group:default/platform-engineering
-#   system: ${{values.project_name}}
-
----
-
 apiVersion: backstage.io/v1alpha1
 kind: Resource
 metadata:

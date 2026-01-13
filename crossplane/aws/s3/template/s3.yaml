@@ -9,5 +9,5 @@ spec:
   forProvider:
     region: ${{values.bucket_region}}
   providerConfigRef:
-    name: aws
     kind: ClusterProviderConfig
+    name: default
