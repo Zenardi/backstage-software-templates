@@ -1,0 +1,165 @@
+# Security Group for EKS Cluster Control Plane
+apiVersion: ec2.aws.m.upbound.io/v1beta1
+kind: SecurityGroup
+metadata:
+  name: eks-cluster-sg
+  labels:
+    name: eks-cluster-sg
+spec:
+  providerConfigRef:
+    name: default
+    kind: ClusterProviderConfig
+  forProvider:
+    name: ${{ values.cluster_name }}-cluster-sg
+    description: Security group for EKS cluster control plane
+    region: ${{ values.eks_region }}
+    vpcIdRef:
+      name: ${{ values.cluster_name }}-vpc
+    tags:
+      Name: ${{ values.cluster_name }}-cluster-sg
+---
+# Security Group for EKS Worker Nodes
+apiVersion: ec2.aws.m.upbound.io/v1beta1
+kind: SecurityGroup
+metadata:
+  name: eks-node-sg
+  labels:
+    name: eks-node-sg
+spec:
+  providerConfigRef:
+    name: default
+    kind: ClusterProviderConfig
+  forProvider:
+    name: ${{ values.cluster_name }}-node-sg
+    description: Security group for EKS worker nodes
+    region: ${{ values.eks_region }}
+    vpcIdRef:
+      name: ${{ values.cluster_name }}-vpc
+    tags:
+      Name: ${{ values.cluster_name }}-node-sg
+---
+# Allow nodes to communicate with cluster API
+apiVersion: ec2.aws.m.upbound.io/v1beta1
+kind: SecurityGroupRule
+metadata:
+  name: node-to-cluster-ingress
+spec:
+  providerConfigRef:
+    name: default
+    kind: ClusterProviderConfig
+  forProvider:
+    region: ${{ values.eks_region }}
+    type: ingress
+    fromPort: 443
+    toPort: 443
+    protocol: tcp
+    securityGroupIdRef:
+      name: eks-cluster-sg
+    sourceSecurityGroupIdRef:
+      name: eks-node-sg
+    description: Allow nodes to communicate with cluster API
+---
+# Allow cluster to communicate with nodes
+apiVersion: ec2.aws.m.upbound.io/v1beta1
+kind: SecurityGroupRule
+metadata:
+  name: cluster-to-node-ingress
+spec:
+  providerConfigRef:
+    name: default
+    kind: ClusterProviderConfig
+  forProvider:
+    region: ${{ values.eks_region }}
+    type: ingress
+    fromPort: 1025
+    toPort: 65535
+    protocol: tcp
+    securityGroupIdRef:
+      name: eks-node-sg
+    sourceSecurityGroupIdRef:
+      name: eks-cluster-sg
+    description: Allow cluster control plane to communicate with nodes
+---
+# Allow nodes to communicate with each other
+apiVersion: ec2.aws.m.upbound.io/v1beta1
+kind: SecurityGroupRule
+metadata:
+  name: node-to-node-ingress
+spec:
+  providerConfigRef:
+    name: default
+    kind: ClusterProviderConfig
+  forProvider:
+    region: ${{ values.eks_region }}
+    type: ingress
+    fromPort: 0
+    toPort: 65535
+    protocol: "-1"
+    securityGroupIdRef:
+      name: eks-node-sg
+    sourceSecurityGroupIdRef:
+      name: eks-node-sg
+    description: Allow nodes to communicate with each other
+---
+# Allow all outbound traffic from nodes
+apiVersion: ec2.aws.m.upbound.io/v1beta1
+kind: SecurityGroupRule
+metadata:
+  name: node-egress-all
+spec:
+  providerConfigRef:
+    name: default
+    kind: ClusterProviderConfig
+  forProvider:
+    region: ${{ values.eks_region }}
+    type: egress
+    fromPort: 0
+    toPort: 0
+    protocol: "-1"
+    cidrBlocks:
+      - 0.0.0.0/0
+    securityGroupIdRef:
+      name: eks-node-sg
+    description: Allow all outbound traffic from nodes
+---
+# Allow all outbound traffic from cluster
+apiVersion: ec2.aws.m.upbound.io/v1beta1
+kind: SecurityGroupRule
+metadata:
+  name: cluster-egress-all
+spec:
+  providerConfigRef:
+    name: default
+    kind: ClusterProviderConfig
+  forProvider:
+    region: ${{ values.eks_region }}
+    type: egress
+    fromPort: 0
+    toPort: 0
+    protocol: "-1"
+    cidrBlocks:
+      - 0.0.0.0/0
+    securityGroupIdRef:
+      name: eks-cluster-sg
+    description: Allow all outbound traffic from cluster
+---
+# Allow webhook communication from cluster to nodes
+apiVersion: ec2.aws.m.upbound.io/v1beta1
+kind: SecurityGroupRule
+metadata:
+  name: cluster-webhook-ingress
+spec:
+  providerConfigRef:
+    name: default
+    kind: ClusterProviderConfig
+  forProvider:
+    region: ${{ values.eks_region }}
+    type: ingress
+    fromPort: 443
+    toPort: 443
+    protocol: tcp
+    securityGroupIdRef:
+      name: eks-node-sg
+    sourceSecurityGroupIdRef:
+      name: eks-cluster-sg
+    description: Allow cluster webhook communication to nodes

@@ -1,0 +1,60 @@
+name: ${{values.bucket_name}}-deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  cd:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install kubectl
+        shell: bash
+        run: |
+          curl -sSL -o /tmp/kubectl https://dl.k8s.io/release/v1.28.0/bin/linux/amd64/kubectl
+          chmod +x /tmp/kubectl
+          sudo mv /tmp/kubectl /usr/local/bin/kubectl
+
+      - name: "Phase 1: Deploying providers..."
+        run: |
+          echo "Phase 1: Deploying providers..."
+          kubectl create ns ${{values.system.split('/')[1]}} || echo "Namespace ${{values.system.split('/')[1]}} already exists"
+          kubectl apply -f provider.yaml -n ${{values.system.split('/')[1]}}
+          kubectl apply -f provider-config.yaml -n ${{values.system.split('/')[1]}}
+          kubectl wait --for=condition=healthy --timeout=300s provider.pkg.crossplane.io --all -n ${{values.system.split('/')[1]}}
+
+      - name: "Phase 2: Deploying networking and security groups..."
+        run: |
+          echo "Phase 2: Deploying networking and security groups..."
+          kubectl apply -f networking.yaml -n ${{values.system.split('/')[1]}}
+          kubectl apply -f security-groups.yaml -n ${{values.system.split('/')[1]}}
+          kubectl wait --for=condition=ready --timeout=600s vpc.ec2.aws.m.upbound.io --all -n ${{values.system.split('/')[1]}}
+          kubectl wait --for=condition=ready --timeout=600s subnet.ec2.aws.m.upbound.io --all -n ${{values.system.split('/')[1]}}
+
+      - name: "Phase 3: Deploying IAM roles..."
+        run: |
+          echo "Phase 3: Deploying IAM roles..."
+          kubectl apply -f iam.yaml -n ${{values.system.split('/')[1]}}
+          kubectl wait --for=condition=ready --timeout=600s role.iam.aws.m.upbound.io --all -n ${{values.system.split('/')[1]}}
+
+      - name: "Phase 4: Deploying EKS cluster"
+        run: |
+          echo "Phase 4: Deploying EKS cluster (this takes 10-15 minutes)..."
+          kubectl apply -f eks.yaml -n ${{values.system.split('/')[1]}}
+          echo "Waiting for cluster to be ready..."
+          kubectl wait --for=condition=ready --timeout=900s cluster.eks.aws.m.upbound.io/${{values.cluster_name}} -n ${{values.system.split('/')[1]}}
+
+      - name: "Phase 5: Deploying EKS add-ons..."
+        run: |
+          echo "Phase 5: Deploying EKS add-ons..."
+          kubectl apply -f addon.yaml -n ${{values.system.split('/')[1]}}
+          kubectl wait --for=condition=ready --timeout=600s addon.eks.aws.m.upbound.io --all -n ${{values.system.split('/')[1]}}
+
+          echo "✅ EKS cluster deployment complete!"
+          echo ""
+          echo "Configure kubeconfig with:"
+          echo "aws eks update-kubeconfig --name ${{values.cluster_name}} --region ${{values.system.split('/')[1]}}"
+

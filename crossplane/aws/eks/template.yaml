@@ -1,0 +1,206 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: crossplane-aws-eks-cluster
+  title: Create AWS EKS Cluster
+  description: Deploy an AWS EKS cluster using Crossplane.
+  tags:
+    - crossplane
+    - aws
+    - eks
+    - infrastructure
+    - kubernetes
+spec:
+  type: service
+  owner: group:default/platform-engineering
+  lifecycle: experimental
+  parameters:
+    - title: EKS Cluster Details
+      required:
+        - cluster_name
+        - team
+        - kubernetes_version
+        - eks_region
+        - system
+        - app_description
+      properties:
+        
+        cluster_name:
+          title: EKS Cluster Name
+          type: string
+          description: Name of the EKS cluster to be created.
+          ui:autofocus: true
+
+        app_description:
+          title: Application Description
+          type: string
+          description: A brief description of the EKS cluster/application.
+          default: "An EKS cluster deployed using Crossplane."
+
+        system:
+          title: System or Project Responsible
+          type: string
+          description: The system or project this resource belongs to.
+          ui:field: OwnerPicker
+          ui:options:
+            allowArbitraryValues: false
+            catalogFilter:
+              - kind: System
+                'spec.domain': spacetech
+
+        team:
+          title: Team Responsible
+          type: string
+          description: The Team responsible for this resource.
+          ui:field: EntityPicker
+          ui:options:
+            allowArbitraryValues: false
+            catalogFilter:
+              - kind: Group
+                'spec.type': team
+
+        kubernetes_version:
+          title: EKS Kubernetes Version
+          type: string
+          description: The Kubernetes version for the EKS cluster.
+          default: "1.34"
+          enum:
+            - "1.31"
+            - "1.32"
+            - "1.33"
+            - "1.34"
+
+        eks_region:
+          title: AWS Region
+          type: string
+          description: The AWS region where the EKS cluster will be created.
+          default: us-east-1
+          enum:
+            - us-east-1
+            - us-east-2
+            - us-west-1
+            - us-west-2        
+            - eu-west-1
+            - eu-central-1
+            - ap-southeast-1
+            - ap-southeast-2
+            - ap-northeast-1
+
+    - title: Node Group Configuration
+      required:
+        - ami_type
+        - instance_type
+        - capacity_type
+        - desired_size
+        - min_size
+        - max_size
+      properties:
+        ami_type:
+          title: EKS Node AMI Type
+          type: string
+          description: The AMI type for the EKS worker nodes.
+          default: BOTTLEROCKET_x86_64
+          enum:
+            - AL2_x86_64
+            - AL2_x86_64_GPU
+            - AL2_ARM_64
+            - BOTTLEROCKET_x86_64
+            - BOTTLEROCKET_ARM_64
+            
+        instance_type:
+          title: EKS Node Instance Type
+          type: string
+          description: The EC2 instance type for the EKS worker nodes.
+          default: t3.medium
+          enum:
+            - t3.medium
+            - t3.large
+            - t3.xlarge
+            - t3.2xlarge
+            - m5.large
+            - m5.xlarge
+            - m5.2xlarge
+
+        capacity_type:
+          title: EKS Node Capacity Type
+          type: string
+          description: The capacity type for the EKS worker nodes.
+          default: SPOT
+          enum:
+            - ON_DEMAND
+            - SPOT
+            
+        desired_size:
+          title: Desired Size
+          type: integer
+          default: 2
+          
+        min_size:
+          title: Minimum Size
+          type: integer
+          default: 1
+          
+        max_size:
+          title: Maximum Size
+          type: integer
+          default: 3
+
+
+
+    - title: Code Repo
+      required:
+        - repoUrl
+      properties: 
+        repoUrl:
+          title: Repository URL
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+
+
+  steps:
+    - id: template
+      name: Fetch Skeleton + Template
+      action: fetch:template
+      input:
+        url: ./template
+        values:
+          cluster_name: ${{ parameters.cluster_name }}
+          app_description: ${{ parameters.app_description }}
+          team: ${{ parameters.team }}
+          system: ${{ parameters.system }}
+          kubernetes_version: ${{ parameters.kubernetes_version }}
+          eks_region: ${{ parameters.eks_region }}
+          ami_type: ${{ parameters.ami_type }}
+          instance_type: ${{ parameters.instance_type }}
+          capacity_type: ${{ parameters.capacity_type }}
+          desired_size: ${{ parameters.desired_size }}
+          min_size: ${{ parameters.min_size }}
+          max_size: ${{ parameters.max_size }}
+          destination: ${{ parameters.repoUrl | parseRepoUrl }}
+
+    - id: publish
+      name: Publish
+      action: publish:github
+      input:
+        repoUrl: ${{ parameters.repoUrl }}
+        protectDefaultBranch: false
+        repoVisibility: public
+
+    - id: register
+      name: Register
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: "/catalog-info.yaml"
+  
+  output:
+    links:
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}
+      - title: Open GitHub Repository
+        icon: code
+        url: ${{ steps.publish.output.remoteUrl }}

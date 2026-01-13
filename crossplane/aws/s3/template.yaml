@@ -3,12 +3,13 @@ kind: Template
 metadata:
   name: crossplane-aws-s3-bucket
   title: Create AWS S3 Bucket
-  description: Deploy an AWS S3 bucket using Crossplane. This component requires for you to install ClusterProviderConfig on the target cluster first.
+  description: Deploy an AWS S3 bucket using Crossplane.
   tags:
     - crossplane
     - aws
     - s3
     - infrastructure
+    - storage
 spec:
   type: crossplane-xr
   owner: group:default/platform-engineering

@@ -1,0 +1,25 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${{ values.cluster_name }}
+  description: '${{ values.app_description }}'
+  annotations:
+    github.com/project-slug: ${{ values.destination.owner }}/{{ values.destination.repo }}
+    backstage.io/techdocs-ref: dir:.
+  tags:
+    - aws
+    - eks
+    - crossplane
+    - infrastructure
+    - iac
+    - kubernetes
+  links:
+    - url: https://${{ values.eks_region }}.console.aws.amazon.com/eks/clusters/${{ values.cluster_name }}?region=${{ values.eks_region }}&tab=overview
+      title: AWS EKS Console
+    - url: https://argocd.local/applications/argocd/${{ values.cluster_name }}
+      title: ArgoCD
+spec:
+  type: service
+  owner: ${{ values.team }}
+  lifecycle: experimental
+  system: ${{ values.system }}

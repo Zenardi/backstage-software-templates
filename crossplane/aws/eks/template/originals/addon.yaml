@@ -1,0 +1,76 @@
+# 1. VPC CNI (Networking)
+# Manages IP addresses for Pods. Critical.
+apiVersion: eks.aws.m.upbound.io/v1beta1
+kind: Addon
+metadata:
+  name: addon-vpc-cni
+spec:
+  providerConfigRef:
+    kind: ClusterProviderConfig
+    name: default
+  forProvider:
+    region: us-east-1
+    clusterNameRef:
+      name: cheap-cluster
+    addonName: vpc-cni
+    # "OVERWRITE" is required because EKS installs this by default.
+    # This allows Crossplane to adopt the existing installation.
+    resolveConflictsOnCreate: OVERWRITE
+    resolveConflictsOnUpdate: OVERWRITE 
+---
+# 2. CoreDNS (DNS)
+# Service discovery (e.g., service-a talks to service-b).
+apiVersion: eks.aws.m.upbound.io/v1beta1
+kind: Addon
+metadata:
+  name: addon-coredns
+spec:
+  providerConfigRef:
+    kind: ClusterProviderConfig
+    name: default
+  forProvider:
+    region: us-east-1
+    clusterNameRef:
+      name: cheap-cluster
+    addonName: coredns
+    addonVersion: "v1.11.4-eksbuild.24"
+    resolveConflictsOnCreate: OVERWRITE
+    resolveConflictsOnUpdate: OVERWRITE
+---
+# 3. Kube Proxy (Network Rules)
+# Maintains network rules on nodes.
+apiVersion: eks.aws.m.upbound.io/v1beta1
+kind: Addon
+metadata:
+  name: addon-kube-proxy
+spec:
+  providerConfigRef:
+    kind: ClusterProviderConfig
+    name: default
+  forProvider:
+    region: us-east-1
+    clusterNameRef:
+      name: cheap-cluster
+    addonName: kube-proxy
+    resolveConflictsOnCreate: OVERWRITE
+    resolveConflictsOnUpdate: OVERWRITE
+---
+# 4. EKS Pod Identity Agent (Auth)
+# The modern way to give AWS permissions to Pods (replaces complex OIDC/IRSA setups).
+apiVersion: eks.aws.m.upbound.io/v1beta1
+kind: Addon
+metadata:
+  name: addon-pod-identity
+spec:
+  providerConfigRef:
+    kind: ClusterProviderConfig
+    name: default
+  forProvider:
+    region: us-east-1
+    clusterNameRef:
+      name: cheap-cluster
+    addonName: eks-pod-identity-agent
+    # This is not always installed by default, but OVERWRITE is safe to ensure
+    # our config prevails if AWS changes defaults.
+    resolveConflictsOnCreate: OVERWRITE
+    resolveConflictsOnUpdate: OVERWRITE

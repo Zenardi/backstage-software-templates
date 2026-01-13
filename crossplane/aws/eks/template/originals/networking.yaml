@@ -1,0 +1,246 @@
+apiVersion: ec2.aws.m.upbound.io/v1beta1
+kind: VPC
+metadata:
+  name: cheap-eks-vpc
+  labels:
+    name: cheap-eks-vpc
+spec:
+  providerConfigRef:
+    name: default
+    kind: ClusterProviderConfig
+  forProvider:
+    region: us-east-1
+    cidrBlock: 10.0.0.0/16
+    enableDnsSupport: true
+    enableDnsHostnames: true
+    tags:
+      Name: cheap-eks-vpc
+
+---
+apiVersion: ec2.aws.m.upbound.io/v1beta1
+kind: InternetGateway
+metadata:
+  name: cheap-eks-igw
+  labels:
+    name: cheap-eks-igw
+spec:
+  providerConfigRef:
+    name: default
+    kind: ClusterProviderConfig
+  forProvider:
+    region: us-east-1
+    vpcIdRef:
+      name: cheap-eks-vpc
+    tags:
+      Name: cheap-eks-igw
+---
+# Public Subnet (Hosts the NAT Gateway)
+apiVersion: ec2.aws.m.upbound.io/v1beta1
+kind: Subnet
+metadata:
+  name: public-subnet-1
+  labels:
+    name: public-subnet-1
+spec:
+  providerConfigRef:
+    name: default
+    kind: ClusterProviderConfig
+  forProvider:
+    region: us-east-1
+    vpcIdRef:
+      name: cheap-eks-vpc
+    cidrBlock: 10.0.1.0/24
+    availabilityZone: us-east-1a
+    mapPublicIpOnLaunch: true
+    tags:
+      Name: public-subnet-1
+---
+# Private Subnet (Hosts the Nodes) - AZ 1
+apiVersion: ec2.aws.m.upbound.io/v1beta1
+kind: Subnet
+metadata:
+  name: private-subnet-1
+  labels:
+    name: private-subnet-1
+spec:
+  providerConfigRef:
+    name: default
+    kind: ClusterProviderConfig
+  forProvider:
+    region: us-east-1
+    vpcIdRef:
+      name: cheap-eks-vpc
+    cidrBlock: 10.0.2.0/24
+    availabilityZone: us-east-1a
+    tags:
+      Name: private-subnet-1
+---
+# Private Subnet (Hosts the Nodes) - AZ 2
+apiVersion: ec2.aws.m.upbound.io/v1beta1
+kind: Subnet
+metadata:
+  name: private-subnet-2
+  labels:
+    name: private-subnet-2
+spec:
+  providerConfigRef:
+    name: default
+    kind: ClusterProviderConfig
+  forProvider:
+    region: us-east-1
+    vpcIdRef:
+      name: cheap-eks-vpc
+    cidrBlock: 10.0.3.0/24
+    availabilityZone: us-east-1b
+    tags:
+      Name: private-subnet-2
+---
+# Elastic IP for NAT Gateway
+apiVersion: ec2.aws.m.upbound.io/v1beta1
+kind: EIP
+metadata:
+  name: nat-eip
+  labels:
+    name: nat-eip
+spec:
+  providerConfigRef:
+    name: default
+    kind: ClusterProviderConfig
+  forProvider:
+    region: us-east-1
+    domain: vpc
+---
+# NAT Gateway (The requested component)
+apiVersion: ec2.aws.m.upbound.io/v1beta1
+kind: NATGateway
+metadata:
+  name: cheap-nat-gw
+  labels:
+    name: cheap-nat-gw
+spec:
+  providerConfigRef:
+    name: default
+    kind: ClusterProviderConfig
+  forProvider:
+    region: us-east-1
+    allocationIdRef:
+      name: nat-eip
+    subnetIdRef:
+      name: public-subnet-1
+    tags:
+      Name: cheap-nat-gw
+---
+# Route Table for Private Subnet (Points to NAT)
+apiVersion: ec2.aws.m.upbound.io/v1beta1
+kind: RouteTable
+metadata:
+  name: private-rt
+  labels:
+    name: private-rt
+spec:
+  providerConfigRef:
+    name: default
+    kind: ClusterProviderConfig
+  forProvider:
+    region: us-east-1
+    vpcIdRef:
+      name: cheap-eks-vpc
+    tags:
+      Name: private-rt
+---
+apiVersion: ec2.aws.m.upbound.io/v1beta1
+kind: Route
+metadata:
+  name: private-route-nat
+spec:
+  providerConfigRef:
+    name: default
+    kind: ClusterProviderConfig
+  forProvider:
+    region: us-east-1
+    routeTableIdRef:
+      name: private-rt
+    destinationCidrBlock: 0.0.0.0/0
+    natGatewayIdRef:
+      name: cheap-nat-gw
+---
+# Route Table Association for Private Subnet
+apiVersion: ec2.aws.m.upbound.io/v1beta1
+kind: RouteTableAssociation
+metadata:
+  name: private-rta
+spec:
+  providerConfigRef:
+    name: default
+    kind: ClusterProviderConfig
+  forProvider:
+    region: us-east-1
+    subnetIdRef:
+      name: private-subnet-1
+    routeTableIdRef:
+      name: private-rt
+---
+# Route Table for Public Subnet (Points to IGW)
+apiVersion: ec2.aws.m.upbound.io/v1beta1
+kind: RouteTable
+metadata:
+  name: public-rt
+  labels:
+    name: public-rt
+spec:
+  providerConfigRef:
+    name: default
+    kind: ClusterProviderConfig
+  forProvider:
+    region: us-east-1
+    vpcIdRef:
+      name: cheap-eks-vpc
+    tags:
+      Name: public-rt
+---
+apiVersion: ec2.aws.m.upbound.io/v1beta1
+kind: Route
+metadata:
+  name: public-route-igw
+spec:
+  providerConfigRef:
+    name: default
+    kind: ClusterProviderConfig
+  forProvider:
+    region: us-east-1
+    routeTableIdRef:
+      name: public-rt
+    destinationCidrBlock: 0.0.0.0/0
+    gatewayIdRef:
+      name: cheap-eks-igw
+---
+apiVersion: ec2.aws.m.upbound.io/v1beta1
+kind: RouteTableAssociation
+metadata:
+  name: public-rta
+spec:
+  providerConfigRef:
+    name: default
+    kind: ClusterProviderConfig
+  forProvider:
+    region: us-east-1
+    subnetIdRef:
+      name: public-subnet-1
+    routeTableIdRef:
+      name: public-rt
+---
+# Route Table Association for Private Subnet 2 (Same route table as subnet-1)
+apiVersion: ec2.aws.m.upbound.io/v1beta1
+kind: RouteTableAssociation
+metadata:
+  name: private-rta-2
+spec:
+  providerConfigRef:
+    name: default
+    kind: ClusterProviderConfig
+  forProvider:
+    region: us-east-1
+    subnetIdRef:
+      name: private-subnet-2
+    routeTableIdRef:
+      name: private-rt

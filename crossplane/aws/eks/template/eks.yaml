@@ -1,0 +1,57 @@
+apiVersion: eks.aws.m.upbound.io/v1beta1
+kind: Cluster
+metadata:
+  name: ${{ values.cluster_name }}
+  labels:
+    name: ${{ values.cluster_name }}
+spec:
+  providerConfigRef:
+    kind: ClusterProviderConfig
+    name: default
+  forProvider:
+    region: ${{ values.eks_region }}
+    roleArnRef:
+      name: cluster-role
+    version: "${{ values.kubernetes_version }}"
+    vpcConfig:
+      subnetIdRefs:
+        - name: private-subnet-1
+        - name: private-subnet-2
+      # Security group for cluster control plane
+      securityGroupIdRefs:
+        - name: eks-cluster-sg
+      # Enable private endpoint so nodes in private subnets can reach cluster
+      endpointPrivateAccess: true
+      endpointPublicAccess: true
+---
+apiVersion: eks.aws.m.upbound.io/v1beta1
+kind: NodeGroup
+metadata:
+  name: ${{ values.cluster_name }}-nodegroup
+spec:
+  providerConfigRef:
+    name: default
+    kind: ClusterProviderConfig
+  forProvider:
+    region: ${{ values.eks_region }}
+    clusterNameRef:
+      name: ${{ values.cluster_name }}
+    nodeRoleArnRef:
+      name: node-role
+    subnetIdRefs:
+      - name: private-subnet-1
+      - name: private-subnet-2
+    
+    
+    capacityType: ${{ values.capacity_type }}
+    amiType: ${{ values.ami_type }}
+    instanceTypes:
+      - ${{ values.instance_type }}
+      # - t3a.medium
+      # - t2.medium
+      # - m5.large
+    
+    scalingConfig:
+      desiredSize: ${{ values.desired_size }}
+      minSize: ${{ values.min_size }}
+      maxSize: ${{ values.max_size }}
