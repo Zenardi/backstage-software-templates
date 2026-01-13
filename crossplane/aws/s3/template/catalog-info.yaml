@@ -21,7 +21,7 @@ metadata:
     # Kubernetes cluster linkage (from your template field)
     backstage.io/kubernetes-id: ${{values.targetCluster}}
     deployment-target-cluster: ${{values.targetCluster}}
-    backstage.io/kubernetes-namespace: ${{values.project_name.split('/')[1]}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
     
     # Infrastructure as Code
     # crossplane.io/claim-name: ${{values.bucket_name}}
@@ -38,9 +38,9 @@ metadata:
       title: ArgoCD
 spec:
   type: service # crossplane-xr
-  owner: ${{values.owner}}
+  owner: ${{ values.team }}
   lifecycle: experimental
-  system: ${{values.project_name}}
+  system: ${{values.system}}
   dependsOn:
     - resource:default/crossplane-provider-aws-s3
     - ${{values.targetCluster}}

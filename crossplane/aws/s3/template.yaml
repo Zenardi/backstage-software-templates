@@ -21,8 +21,7 @@ spec:
         - bucket_region
         - description
         - owner
-        - project
-        - org_name
+        - system
       properties:
         bucket_name:
           title: S3 Bucket Name
@@ -54,22 +53,8 @@ spec:
           ui:options:
             allowedHosts:
               - github.com
-        org_name:
-          title: Organization Name
-          type: string
-          description: The GitHub organization or user name where the repository will be created.
-          default: zenardi-org
-        owner:
-          title: Owner
-          type: string
-          description: Owner of the S3 bucket.
-          ui:field: OwnerPicker
-          ui:options:
-            allowedKinds:
-              - Group
-              - User
 
-        project:
+        team:
           title: Team Responsible
           type: string
           description: The Team responsible for this resource.
@@ -79,6 +64,17 @@ spec:
             catalogFilter:
               - kind: Group
                 'spec.type': team
+
+        system:
+          title: System or Project Responsible
+          type: string
+          description: The system or project this resource belongs to.
+          ui:field: OwnerPicker
+          ui:options:
+            allowArbitraryValues: false
+            catalogFilter:
+              - kind: System
+                'spec.domain': spacetech
 
         targetCluster:
           title: Deploy To Kubernetes Cluster
@@ -100,11 +96,10 @@ spec:
         values:
           bucket_name: ${{ parameters.bucket_name }}
           bucket_region: ${{ parameters.bucket_region }}
+          team: ${{ parameters.team }}
           description: ${{ parameters.description }}
-          owner: ${{ parameters.owner }}
-          project_name: ${{ parameters.project }}
+          system: ${{ parameters.system }}
           destination: ${{ parameters.repoUrl | parseRepoUrl }}
-          org_name: ${{ parameters.org_name }}
           targetCluster: ${{parameters.targetCluster}}
 
     - id: publish

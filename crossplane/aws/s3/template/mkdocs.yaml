@@ -1,6 +1,6 @@
 site_name: '${{values.bucket_name}}'
 site_description: 'Main documentation for the ${{values.bucket_name}}'
-repo_url: https://github.com/${values.org_name}/${{values.bucket_name}}
+repo_url: https://github.com/${{values.destination.owner + "/" + values.destination.repo}}
 edit_uri: edit/main/docs
 
 plugins:
