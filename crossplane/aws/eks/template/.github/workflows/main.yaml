@@ -56,5 +56,5 @@ jobs:
           echo "✅ EKS cluster deployment complete!"
           echo ""
           echo "Configure kubeconfig with:"
-          echo "aws eks update-kubeconfig --name ${{values.cluster_name}} --region ${{values.system.split('/')[1]}}"
+          echo "aws eks update-kubeconfig --name ${{values.cluster_name}} --region ${{values.eks_region}}"
 

@@ -74,7 +74,7 @@ spec:
           title: AWS Region
           type: string
           description: The AWS region where the EKS cluster will be created.
-          default: us-east-1
+          default: us-west-1
           enum:
             - us-east-1
             - us-east-2

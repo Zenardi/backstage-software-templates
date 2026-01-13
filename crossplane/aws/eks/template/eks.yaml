@@ -46,10 +46,14 @@ spec:
     capacityType: ${{ values.capacity_type }}
     amiType: ${{ values.ami_type }}
     instanceTypes:
-      - ${{ values.instance_type }}
-      # - t3a.medium
-      # - t2.medium
-      # - m5.large
+      # - ${{ values.instance_type }}
+      - t3.medium
+      - t3.large
+      - t3.xlarge
+      - t3.2xlarge
+      - m5.large
+      - m5.xlarge
+      - m5.2xlarge
     
     scalingConfig:
       desiredSize: ${{ values.desired_size }}

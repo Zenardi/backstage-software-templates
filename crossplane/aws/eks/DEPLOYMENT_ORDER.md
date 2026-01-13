@@ -128,11 +128,12 @@ kubectl get pods -A
 To delete everything:
 ```bash
 # Delete in reverse order
-kubectl delete -f template/addon.yaml -n eks-demo
-kubectl delete -f template/eks.yaml -n eks-demo
-kubectl delete -f template/iam.yaml -n eks-demo
-kubectl delete -f template/security-groups.yaml -n eks-demo
-kubectl delete -f template/networking.yaml -n eks-demo
+NAMESPACE=rocketman
+kubectl delete -f addon.yaml -n $NAMESPACE
+kubectl delete -f eks.yaml -n $NAMESPACE
+kubectl delete -f iam.yaml -n $NAMESPACE
+kubectl delete -f security-groups.yaml -n $NAMESPACE
+kubectl delete -f networking.yaml -n $NAMESPACE
 ```
 
 Wait 5-10 minutes for AWS resources to be deleted before removing providers.
