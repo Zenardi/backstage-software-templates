@@ -19,6 +19,7 @@ spec:
         - environment
         - app_description
         - team
+        - system
         - image_registry
       properties:
         
@@ -59,6 +60,17 @@ spec:
             catalogFilter:
               - kind: Group
                 'spec.type': team
+
+        system:
+          title: System or Project Responsible
+          type: string
+          description: The system or project this resource belongs to.
+          ui:field: OwnerPicker
+          ui:options:
+            allowArbitraryValues: false
+            catalogFilter:
+              - kind: System
+                'spec.domain': spacetech
 
     - title: Select Repo
       required:
@@ -138,6 +150,7 @@ spec:
           destination: ${{ parameters.repoUrl | parseRepoUrl }}
           targetCluster: ${{parameters.targetCluster}}
           team: ${{parameters.team}}
+          system: ${{parameters.system}}
 
 
 
