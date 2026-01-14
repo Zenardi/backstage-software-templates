@@ -3,7 +3,6 @@ kind: Repository
 metadata:
   name: ${{ values.repo_name }}
   labels:
-    environment: ${{values.app_env}}
     backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
     backstage.io/kubernetes-id: ${{values.repo_name}}
     backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}

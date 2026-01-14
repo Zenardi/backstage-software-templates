@@ -23,6 +23,7 @@ spec:
         - eks_region
         - system
         - app_description
+        - environment
       properties:
         
         cluster_name:
@@ -36,6 +37,17 @@ spec:
           type: string
           description: A brief description of the EKS cluster/application.
           default: "An EKS cluster deployed using Crossplane."
+
+        environment:
+          title: Deployment Environment
+          type: string
+          description: The environment for the EKS cluster (e.g., development, staging, production).
+          default: development
+          enum:
+            - poc
+            - dev
+            - staging
+            - prod
 
         system:
           title: System or Project Responsible
@@ -193,6 +205,7 @@ spec:
           max_size: ${{ parameters.max_size }}
           destination: ${{ parameters.repoUrl | parseRepoUrl }}
           targetCluster: ${{parameters.targetCluster}}
+          app_env: ${{ parameters.environment }}
 
     - id: publish
       name: Publish

@@ -4,7 +4,6 @@ metadata:
   namespace: ${{values.system.split('/')[1]}}
   name: ${{values.bucket_name}}
   labels:
-    environment: ${{values.app_env}}
     backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
     backstage.io/kubernetes-id: ${{values.bucket_name}}
     backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
