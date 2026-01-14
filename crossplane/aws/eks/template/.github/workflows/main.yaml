@@ -44,6 +44,26 @@ jobs:
         run: |
           kubectl apply -f argocd/application.yaml
 
+      - name: Ensure Namespace Exists
+        shell: bash
+        run: |
+          NAMESPACE="${{values.system.split('/')[1]}}"
+          echo "Creating namespace: $NAMESPACE"
+          kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
+
+          # Wait for namespace to be ready (max 30 seconds)
+          for i in {1..30}; do
+            if kubectl get namespace "$NAMESPACE" &>/dev/null; then
+              echo "✓ Namespace $NAMESPACE is ready"
+              exit 0
+            fi
+            echo "Waiting for namespace to be created... ($i/30)"
+            sleep 1
+          done
+
+          echo "✗ Namespace creation timeout after 30 seconds"
+          exit 1
+
       - name: "Phase 1: Deploying providers..."
         run: |
           echo "Phase 1: Deploying providers..."
