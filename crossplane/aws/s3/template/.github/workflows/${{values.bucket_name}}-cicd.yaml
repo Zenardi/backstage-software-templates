@@ -14,6 +14,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Install kubectl
+        shell: bash
+        run: |
+          curl -sSL -o /tmp/kubectl https://dl.k8s.io/release/v1.28.0/bin/linux/amd64/kubectl
+          chmod +x /tmp/kubectl
+          sudo mv /tmp/kubectl /usr/local/bin/kubectl
+          
       - name: Install argocd
         shell: bash
         run: |
@@ -39,14 +46,6 @@ jobs:
         shell: bash
         run: |
           kubectl apply -f argocd/application.yaml
-
-      # Install kubectl 
-      - name: Install kubectl
-        shell: bash
-        run: |
-          curl -sSL -o /tmp/kubectl https://dl.k8s.io/release/v1.28.0/bin/linux/amd64/kubectl
-          chmod +x /tmp/kubectl
-          sudo mv /tmp/kubectl /usr/local/bin/kubectl
 
       - name: Apply Crossplane S3 Resource
         run: |

@@ -21,6 +21,14 @@ jobs:
           chmod +x /tmp/argocd
           sudo mv /tmp/argocd /usr/local/bin/argocd
 
+      # Install kubectl 
+      - name: Install kubectl
+        shell: bash
+        run: |
+          curl -sSL -o /tmp/kubectl https://dl.k8s.io/release/v1.28.0/bin/linux/amd64/kubectl
+          chmod +x /tmp/kubectl
+          sudo mv /tmp/kubectl /usr/local/bin/kubectl
+
       - name: argocd login
         shell: bash
         run: |
@@ -39,14 +47,6 @@ jobs:
         shell: bash
         run: |
           kubectl apply -f argocd/application.yaml
-
-      # Install kubectl 
-      - name: Install kubectl
-        shell: bash
-        run: |
-          curl -sSL -o /tmp/kubectl https://dl.k8s.io/release/v1.28.0/bin/linux/amd64/kubectl
-          chmod +x /tmp/kubectl
-          sudo mv /tmp/kubectl /usr/local/bin/kubectl
 
       - name: Apply Crossplane ECR Resource
         run: |
