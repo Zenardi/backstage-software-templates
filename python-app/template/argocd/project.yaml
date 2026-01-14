@@ -17,9 +17,13 @@ spec:
 
   # Allow creation of cluster-scoped resources (Namespaces, ClusterRoles, etc.)
   clusterResourceWhitelist:
+  - group: 'pkg.crossplane.io'
+    kind: 'Provider'
+  - group: 'pkg.crossplane.io'
+    kind: 'ProviderConfig'
+  - group: 'aws.m.upbound.io'
+    kind: 'ClusterProviderConfig'
+  - group: '*.aws.upbound.io'
+    kind: '*'
   - group: ''
-    kind: Namespace
-  - group: 'rbac.authorization.k8s.io'
-    kind: ClusterRole
-  - group: 'rbac.authorization.k8s.io'
-    kind: ClusterRoleBinding
+    kind: 'Namespace'

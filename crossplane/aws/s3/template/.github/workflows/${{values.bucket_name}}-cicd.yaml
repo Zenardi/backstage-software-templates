@@ -30,6 +30,16 @@ jobs:
             --username admin \
             --password  ${{ '${{ secrets.ARGOCD_PASSWORD }}' }}
 
+      - name: Ensure ArgoCD Project
+        shell: bash
+        run: |
+          kubectl apply -f argocd/project.yaml
+
+      - name: Ensure ArgoCD Application
+        shell: bash
+        run: |
+          kubectl apply -f argocd/application.yaml
+
       # Install kubectl 
       - name: Install kubectl
         shell: bash
@@ -44,12 +54,3 @@ jobs:
           kubectl apply -f ns.yaml
           kubectl apply -f s3.yaml
 
-      - name: Ensure ArgoCD Project
-        shell: bash
-        run: |
-          kubectl apply -f argocd/project.yaml
-
-      - name: Ensure ArgoCD Application
-        shell: bash
-        run: |
-          kubectl apply -f argocd/application.yaml

@@ -56,14 +56,6 @@ jobs:
             --grpc-web \
             --username admin \
             --password ${{ secrets.ARGOCD_PASSWORD }}
-          
-      - name: Deploy to Local Cluster
-        run: |
-          echo "🚀 Applying manifests from k8s/ folder..."
-          kubectl apply -f k8s/
-          
-          echo "⏳ Waiting for rollout..."
-          kubectl rollout status deployment/${{values.app_name}} -n ${{values.project_name.split('/')[1]}} --timeout=90s
 
       - name: Ensure ArgoCD Project
         shell: bash
@@ -74,3 +66,12 @@ jobs:
         shell: bash
         run: |
           kubectl apply -f argocd/application.yaml
+          
+      - name: Deploy to Local Cluster
+        run: |
+          echo "🚀 Applying manifests from k8s/ folder..."
+          kubectl apply -f k8s/
+          
+          echo "⏳ Waiting for rollout..."
+          kubectl rollout status deployment/${{values.app_name}} -n ${{values.project_name.split('/')[1]}} --timeout=90s
+

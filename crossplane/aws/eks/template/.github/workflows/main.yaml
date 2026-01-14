@@ -34,6 +34,16 @@ jobs:
             --username admin \
             --password  ${{ '${{ secrets.ARGOCD_PASSWORD }}' }}
 
+      - name: Ensure ArgoCD Project
+        shell: bash
+        run: |
+          kubectl apply -f argocd/project.yaml
+
+      - name: Ensure ArgoCD Application
+        shell: bash
+        run: |
+          kubectl apply -f argocd/application.yaml
+
       - name: "Phase 1: Deploying providers..."
         run: |
           echo "Phase 1: Deploying providers..."
@@ -74,12 +84,3 @@ jobs:
           echo "Configure kubeconfig with:"
           echo "aws eks update-kubeconfig --name ${{values.cluster_name}} --region ${{values.eks_region}}"
 
-      - name: Ensure ArgoCD Project
-        shell: bash
-        run: |
-          kubectl apply -f argocd/project.yaml
-
-      - name: Ensure ArgoCD Application
-        shell: bash
-        run: |
-          kubectl apply -f argocd/application.yaml
