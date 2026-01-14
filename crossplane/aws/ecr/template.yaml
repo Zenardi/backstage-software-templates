@@ -95,7 +95,7 @@ spec:
         url: ./template
         values:
           repo_name: ${{ parameters.repo_name }}
-          bucket_region: ${{ parameters.bucket_region }}
+          repo_region: ${{ parameters.repo_region }}
           team: ${{ parameters.team }}
           description: ${{ parameters.description }}
           system: ${{ parameters.system }}
