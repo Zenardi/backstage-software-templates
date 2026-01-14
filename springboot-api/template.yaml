@@ -163,7 +163,7 @@ spec:
       name: Publish
       action: publish:github
       input:
-        description: "A React (TypeScript) application: ${{ parameters.component_id }}"
+        description: "A Java Spring Boot application: ${{ parameters.component_id }}"
         repoUrl: ${{ parameters.repoUrl }}
         protectDefaultBranch: false
         repoVisibility: public
