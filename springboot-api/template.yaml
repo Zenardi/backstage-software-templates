@@ -5,7 +5,7 @@ metadata:
   title: Create Springboot API
   description: Provision a Springboot API application deployed to a Kubernetes cluster
   tags:
-    - spring
+    - springboot
     - java
     - api
     - kubernetes
