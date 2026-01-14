@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>${{values.java_package_name}}</groupId>
-	<artifactId>${{values.component_id}}</artifactId>
+	<artifactId>${{values.app_name}}</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
-	<name>${{values.component_id}}</name>
+	<name>${{values.app_name}}</name>
 	<description>${{values.app_description}}</description>
 	<url/>
 	<licenses>
