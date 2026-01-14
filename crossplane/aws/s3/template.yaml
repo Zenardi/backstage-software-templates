@@ -20,7 +20,6 @@ spec:
         - bucket_name
         - bucket_region
         - description
-        - owner
         - system
       properties:
         bucket_name:
