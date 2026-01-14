@@ -1,0 +1,91 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Spring Boot Hello World API",
+    "description": "A simple Spring Boot REST API with Hello World endpoints",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Generated server url"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Hello API",
+      "description": "Endpoints for hello world operations"
+    }
+  ],
+  "paths": {
+    "/hello": {
+      "get": {
+        "tags": [
+          "Hello API"
+        ],
+        "summary": "Hello endpoint",
+        "description": "Returns a simple hello message",
+        "operationId": "hello",
+        "responses": {
+          "200": {
+            "description": "Hello message returned successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/status": {
+      "get": {
+        "tags": [
+          "Hello API"
+        ],
+        "summary": "Status endpoint",
+        "description": "Returns the status of the API in JSON format",
+        "operationId": "status",
+        "responses": {
+          "200": {
+            "description": "Status information returned successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "tags": [
+          "Hello API"
+        ],
+        "summary": "Welcome endpoint",
+        "description": "Returns a welcome message to the API",
+        "operationId": "index",
+        "responses": {
+          "200": {
+            "description": "Welcome message returned successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+
+  }
+}

@@ -1,0 +1,187 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: springboot-api
+  title: Create Springboot API
+  description: Provision a Springboot API application deployed to a Kubernetes cluster
+  tags:
+    - spring
+    - java
+    - api
+    - kubernetes
+spec:
+  owner: group:default/platform-engineering
+  type: service
+
+  parameters:
+    - title: App Info
+      required:
+        - component_id
+        - environment
+        - app_description
+        - image_registry
+        - java_package_name
+        - system
+      properties:
+        component_id:
+          title: Component name
+          type: string
+          description: Provide App name
+          pattern: '^([a-zA-Z][a-zA-Z0-9]*)(-[a-zA-Z0-9]+)*$'
+        
+        app_description:
+          title: Application Description
+          type: string
+          description: A short description of the application
+          default: Springboot API Application
+
+        java_package_name:
+          title: Java Package Name
+          type: string
+          description: Name for the Java package (e.g., io.backstage.service)
+        
+        environment:
+          title: Environment
+          type: string
+          description: The environment where this component will be deployed
+          enum:
+            - poc
+            - dev
+            - staging
+            - prod
+
+        system:
+          title: System or Project Responsible
+          type: string
+          description: The system or project this resource belongs to.
+          ui:field: OwnerPicker
+          ui:options:
+            allowArbitraryValues: false
+            catalogFilter:
+              - kind: System
+                'spec.domain': spacetech
+
+        image_registry:
+          title: Image Registry (ContainerRegistry/ImageName, e.g. docker.io/your-app)
+          type: string
+          description: Container image registry URL
+          default: docker.io/zenardi
+
+        team:
+          title: Team Responsible
+          type: string
+          description: The Team responsible for this resource.
+          ui:field: EntityPicker
+          ui:options:
+            allowArbitraryValues: false
+            catalogFilter:
+              - kind: Group
+                'spec.type': team
+
+    - title: Select Repo
+      properties:
+        repoUrl:
+          title: Repository Location
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+
+    - title: Kubernetes Deployment Specs
+      required: 
+        - deploy_replicas
+        - domain_name
+        - hpa_min_replicas
+        - hpa_max_replicas
+        - hpa_avg_cpu_utilization
+      properties:
+      
+        targetCluster:
+          title: Deploy To Kubernetes Cluster
+          type: string
+          description: Pick Kubernetes Cluster
+          ui:field: EntityPicker
+          ui:options:
+            allowArbitraryValues: false
+            catalogFilter:
+              - kind: Resource
+                'spec.type': kubernetes-cluster
+
+        deploy_replicas:
+          title: Deployment Replicas
+          type: number
+          description: Number of replicas for the deployment
+          default: 2
+        hpa_min_replicas:
+          title: Horizontal Pod Autoscaler Minimum Replicas
+          type: number
+          description: Minimum number of replicas for the HPA
+          default: 1
+        hpa_max_replicas:
+          title: Horizontal Pod Autoscaler Maximum Replicas
+          type: number
+          description: Maximum number of replicas for the HPA
+          default: 5
+        hpa_avg_cpu_utilization:
+          title: Horizontal Pod Autoscaler Average CPU Utilization
+          type: number
+          description: Average CPU utilization percentage for triggering scaling (0-100)
+          default: 70
+        domain_name:
+          title: Domain Name
+          type: string
+          description: The domain name for the application
+          default: local.com
+        
+
+  steps:
+    - id: fetch-base
+      name: Fetch Base
+      action: fetch:template
+      input:
+        url: ./template
+        values:
+          app_name: ${{parameters.component_id}}
+          app_description: ${{parameters.app_description}}
+          app_env: ${{parameters.environment}}
+          system: ${{parameters.system}}
+          java_package_name: ${{parameters.java_package_name}}
+          deploy_replicas: ${{parameters.deploy_replicas}}
+          image_registry: ${{parameters.image_registry}}
+          domain_name: ${{parameters.domain_name}}
+          hpa_min_replicas: ${{parameters.hpa_min_replicas}}
+          hpa_max_replicas: ${{parameters.hpa_max_replicas}}
+          hpa_avg_cpu_utilization: ${{parameters.hpa_avg_cpu_utilization}}
+          team: ${{parameters.team}}
+          destination: ${{ parameters.repoUrl | parseRepoUrl }}
+          targetCluster: ${{parameters.targetCluster}}
+          http_port: 8080
+
+
+    - id: publish
+      name: Publish
+      action: publish:github
+      input:
+        description: "A React (TypeScript) application: ${{ parameters.component_id }}"
+        repoUrl: ${{ parameters.repoUrl }}
+        protectDefaultBranch: false
+        repoVisibility: public
+
+    - id: register
+      name: Register
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps['publish'].output.repoContentsUrl }}
+        catalogInfoPath: "/catalog-info.yaml"
+
+  output:
+    links:
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}
+      - title: Repository
+        url: ${{ steps['publish'].output.remoteUrl }}
+        icon: 'github'
+
+

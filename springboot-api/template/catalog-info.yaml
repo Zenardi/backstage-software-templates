@@ -1,0 +1,113 @@
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: ${{ values.app_name }}
+  description: ${{ values.app_description }}
+  annotations:
+    github.com/project-slug: ${{values.destination.owner + "/" + values.destination.repo}}
+    backstage.io/techdocs-ref: dir:.
+    grafana/dashboard-selector: "title == '${{values.app_name}}'"
+    grafana/alert-label-selector: "app=${{values.app_name}}"
+    
+    # Kubernetes cluster linkage (from your template field)
+    backstage.io/kubernetes-id: ${{values.targetCluster}}
+    deployment-target-cluster: ${{values.targetCluster}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+spec:
+  type: openapi
+  lifecycle: experimental
+  owner: ${{ values.team }}
+  system: ${{ values.system }}
+  definition: |
+    {
+      "openapi": "3.0.1",
+      "info": {
+        "title": "${{ values.app_name }} API",
+        "description": "${{ values.app_description }}",
+        "version": "1.0.0"
+      },
+      "servers": [
+        {
+          "url": "http://localhost:8080",
+          "description": "Generated server url"
+        }
+      ],
+      "tags": [
+        {
+          "name": "Hello API",
+          "description": "Endpoints for hello world operations"
+        }
+      ],
+      "paths": {
+        "/hello": {
+          "get": {
+            "tags": [
+              "Hello API"
+            ],
+            "summary": "Hello endpoint",
+            "description": "Returns a simple hello message",
+            "operationId": "hello",
+            "responses": {
+              "200": {
+                "description": "Hello message returned successfully",
+                "content": {
+                  "*/*": {
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "/api/status": {
+          "get": {
+            "tags": [
+              "Hello API"
+            ],
+            "summary": "Status endpoint",
+            "description": "Returns the status of the API in JSON format",
+            "operationId": "status",
+            "responses": {
+              "200": {
+                "description": "Status information returned successfully",
+                "content": {
+                  "*/*": {
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "/": {
+          "get": {
+            "tags": [
+              "Hello API"
+            ],
+            "summary": "Welcome endpoint",
+            "description": "Returns a welcome message to the API",
+            "operationId": "index",
+            "responses": {
+              "200": {
+                "description": "Welcome message returned successfully",
+                "content": {
+                  "*/*": {
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "components": {
+
+      }
+    }

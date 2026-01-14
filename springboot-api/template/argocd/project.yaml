@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: ${{values.system.split('/')[1]}}
+  namespace: argocd
+spec:
+  description: ${{values.system.split('/')[1]}} Project
+  
+  # Allow applications in this project to deploy to any namespace on the local cluster.
+  destinations:
+  - server: https://kubernetes.default.svc
+    namespace: '*'
+
+  # Allow applications in this project to sync from a specific Git repository.
+  sourceRepos: 
+  - '*'
+

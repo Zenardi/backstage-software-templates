@@ -1,0 +1,12 @@
+site_name: '${{values.app_name}} Documentation'
+site_description: 'Documentation for the ${{values.app_name}} application'
+repo_url: https://github.com/${{values.destination.owner + "/" + values.destination.repo}}
+edit_uri: edit/main/docs
+
+plugins:
+  - techdocs-core
+
+# For sidebar navigation on https://backstage.io/, see `microsite/sidebars.json`
+nav:
+  - Overview:
+      - Getting started: 'docs/index.md'
