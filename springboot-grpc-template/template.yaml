@@ -91,6 +91,7 @@ spec:
         - hpa_min_replicas
         - hpa_max_replicas
         - hpa_avg_cpu_utilization
+        - hpa_avg_memory_utilization
       properties:
         targetCluster:
           title: Deploy To Kubernetes Cluster
@@ -122,6 +123,11 @@ spec:
           type: number
           description: Average CPU utilization percentage for scaling (0-100)
           default: 70
+        hpa_avg_memory_utilization:
+          title: Horizontal Pod Autoscaler Average Memory Utilization
+          type: number
+          description: Average Memory utilization percentage for scaling (0-100)
+          default: 70
         domain_name:
           title: Domain Name
           type: string
@@ -147,6 +153,7 @@ spec:
           hpa_min_replicas: ${{ parameters.hpa_min_replicas }}
           hpa_max_replicas: ${{ parameters.hpa_max_replicas }}
           hpa_avg_cpu_utilization: ${{ parameters.hpa_avg_cpu_utilization }}
+          hpa_avg_memory_utilization: ${{ parameters.hpa_avg_memory_utilization }}
           artifact_id: ${{ parameters.component_id }}
           java_package_name: ${{ parameters.java_package_name }}
           team: ${{ parameters.team }}

@@ -86,6 +86,17 @@ spec:
             - ap-southeast-2
             - ap-northeast-1
             - sa-east-1
+        
+        targetCluster:
+          title: Deploy To Kubernetes Cluster
+          type: string
+          description: Pick Kubernetes Cluster
+          ui:field: EntityPicker
+          ui:options:
+            allowArbitraryValues: false
+            catalogFilter:
+              - kind: Resource
+                'spec.type': kubernetes-cluster
 
     - title: Node Group Configuration
       required:
@@ -181,6 +192,7 @@ spec:
           min_size: ${{ parameters.min_size }}
           max_size: ${{ parameters.max_size }}
           destination: ${{ parameters.repoUrl | parseRepoUrl }}
+          targetCluster: ${{parameters.targetCluster}}
 
     - id: publish
       name: Publish

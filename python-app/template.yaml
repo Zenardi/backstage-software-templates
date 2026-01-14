@@ -87,6 +87,7 @@ spec:
         - hpa_min_replicas
         - hpa_max_replicas
         - hpa_avg_cpu_utilization
+        - hpa_avg_memory_utilization
       properties:
       
         targetCluster:
@@ -120,6 +121,11 @@ spec:
           type: number
           description: Average CPU utilization percentage for triggering scaling (0-100)
           default: 70
+        hpa_avg_memory_utilization:
+          title: Horizontal Pod Autoscaler Average Memory Utilization
+          type: number
+          description: Average Memory utilization percentage for triggering scaling (0-100)
+          default: 70
         domain_name:
           title: Domain Name
           type: string
@@ -143,6 +149,7 @@ spec:
           hpa_min_replicas: ${{parameters.hpa_min_replicas}}
           hpa_max_replicas: ${{parameters.hpa_max_replicas}}
           hpa_avg_cpu_utilization: ${{parameters.hpa_avg_cpu_utilization}}
+          hpa_avg_memory_utilization: ${{parameters.hpa_avg_memory_utilization}}
           destination: ${{ parameters.repoUrl | parseRepoUrl }}
           targetCluster: ${{parameters.targetCluster}}
           team: ${{parameters.team}}

@@ -4,6 +4,13 @@ metadata:
   name: ${{ values.cluster_name }}-vpc
   labels:
     name: ${{ values.cluster_name }}-vpc
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   providerConfigRef:
     name: default
@@ -23,6 +30,13 @@ metadata:
   name: ${{ values.cluster_name }}-igw
   labels:
     name: ${{ values.cluster_name }}-igw
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   providerConfigRef:
     name: default
@@ -41,6 +55,13 @@ metadata:
   name: public-subnet-1
   labels:
     name: public-subnet-1
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   providerConfigRef:
     name: default
@@ -62,6 +83,13 @@ metadata:
   name: private-subnet-1
   labels:
     name: private-subnet-1
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   providerConfigRef:
     name: default
@@ -82,6 +110,13 @@ metadata:
   name: private-subnet-2
   labels:
     name: private-subnet-2
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   providerConfigRef:
     name: default
@@ -102,6 +137,13 @@ metadata:
   name: nat-eip
   labels:
     name: nat-eip
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   providerConfigRef:
     name: default
@@ -117,6 +159,13 @@ metadata:
   name: ${{ values.cluster_name }}-nat-gw
   labels:
     name: ${{ values.cluster_name }}-nat-gw
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   providerConfigRef:
     name: default
@@ -137,6 +186,13 @@ metadata:
   name: ${{ values.cluster_name }}-private-rt
   labels:
     name: ${{ values.cluster_name }}-private-rt
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   providerConfigRef:
     name: default
@@ -152,6 +208,15 @@ apiVersion: ec2.aws.m.upbound.io/v1beta1
 kind: Route
 metadata:
   name: private-route-nat
+  labels:
+    name: ${{ values.cluster_name }}-private-route-nat
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   providerConfigRef:
     name: default
@@ -169,6 +234,15 @@ apiVersion: ec2.aws.m.upbound.io/v1beta1
 kind: RouteTableAssociation
 metadata:
   name: private-rta
+  labels:
+    name: private-rta
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   providerConfigRef:
     name: default
@@ -187,6 +261,13 @@ metadata:
   name: ${{ values.cluster_name }}-public-rt
   labels:
     name: ${{ values.cluster_name }}-public-rt
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   providerConfigRef:
     name: default
@@ -202,6 +283,15 @@ apiVersion: ec2.aws.m.upbound.io/v1beta1
 kind: Route
 metadata:
   name: public-route-igw
+  labels:
+    name: ${{ values.cluster_name }}-public-route-igw
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   providerConfigRef:
     name: default
@@ -218,6 +308,14 @@ apiVersion: ec2.aws.m.upbound.io/v1beta1
 kind: RouteTableAssociation
 metadata:
   name: public-rta
+  labels:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   providerConfigRef:
     name: default
@@ -234,6 +332,14 @@ apiVersion: ec2.aws.m.upbound.io/v1beta1
 kind: RouteTableAssociation
 metadata:
   name: private-rta-2
+  labels:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   providerConfigRef:
     name: default

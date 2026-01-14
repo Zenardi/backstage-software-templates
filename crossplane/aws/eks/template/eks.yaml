@@ -4,6 +4,14 @@ metadata:
   name: ${{ values.cluster_name }}
   labels:
     name: ${{ values.cluster_name }}
+    environment: ${{values.app_env}}
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   providerConfigRef:
     kind: ClusterProviderConfig
@@ -28,6 +36,15 @@ apiVersion: eks.aws.m.upbound.io/v1beta1
 kind: NodeGroup
 metadata:
   name: ${{ values.cluster_name }}-nodegroup
+  labels:
+    environment: ${{values.app_env}}
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   providerConfigRef:
     name: default

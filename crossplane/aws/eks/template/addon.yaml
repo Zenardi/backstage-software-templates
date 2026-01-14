@@ -4,6 +4,15 @@ apiVersion: eks.aws.m.upbound.io/v1beta1
 kind: Addon
 metadata:
   name: addon-vpc-cni
+  labels:
+    environment: ${{values.app_env}}
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   providerConfigRef:
     kind: ClusterProviderConfig
@@ -24,6 +33,15 @@ apiVersion: eks.aws.m.upbound.io/v1beta1
 kind: Addon
 metadata:
   name: addon-coredns
+  labels:
+    environment: ${{values.app_env}}
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   providerConfigRef:
     kind: ClusterProviderConfig
@@ -43,6 +61,15 @@ apiVersion: eks.aws.m.upbound.io/v1beta1
 kind: Addon
 metadata:
   name: addon-kube-proxy
+  labels:
+    environment: ${{values.app_env}}
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   providerConfigRef:
     kind: ClusterProviderConfig
@@ -61,6 +88,15 @@ apiVersion: eks.aws.m.upbound.io/v1beta1
 kind: Addon
 metadata:
   name: addon-pod-identity
+  labels:
+    environment: ${{values.app_env}}
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   providerConfigRef:
     kind: ClusterProviderConfig

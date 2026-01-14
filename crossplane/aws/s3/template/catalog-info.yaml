@@ -18,9 +18,9 @@ metadata:
     github.com/project-slug: ${{values.destination.owner + "/" + values.destination.repo}}
     backstage.io/techdocs-ref: dir:.
 
-    # Kubernetes cluster linkage (from your template field)
-    backstage.io/kubernetes-id: ${{values.targetCluster}}
-    deployment-target-cluster: ${{values.targetCluster}}
+    # Kubernetes cluster linkage
+    backstage.io/kubernetes-id: ${{values.bucket_name}}
+    deployment-target-cluster: ${{values.targetCluster.split('/')[1]}}
     backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
     
     # Infrastructure as Code

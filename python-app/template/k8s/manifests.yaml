@@ -6,8 +6,13 @@ metadata:
   labels:
     app: ${{values.app_name}}
     environment: ${{values.app_env}}
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.app_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
   annotations:
-    backstage.io/kubernetes-cluster: ${{ values.targetCluster }}
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.app_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   replicas: ${{values.deploy_replicas}}
   selector:
@@ -18,6 +23,9 @@ spec:
       labels:
         app: ${{values.app_name}}
         environment: ${{values.app_env}}
+        backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+        backstage.io/kubernetes-id: ${{values.app_name}}
+        backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
     spec:
       containers:
         - name: ${{values.app_name}}
@@ -42,11 +50,11 @@ spec:
             failureThreshold: 3
           resources:
             requests:
-              cpu: "150m"
-              memory: "128Mi"
+              cpu: "50m"
+              memory: "64Mi"
             limits:
-              cpu: "300m"
-              memory: "256Mi"
+              cpu: "100m"
+              memory: "128Mi"
 ---
 apiVersion: v1
 kind: Service
@@ -70,6 +78,15 @@ kind: HorizontalPodAutoscaler
 metadata:
   name: ${{values.app_name}}-hpa
   namespace: ${{values.system.split('/')[1]}}
+  labels:
+    environment: ${{values.app_env}}
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.app_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.app_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -84,6 +101,12 @@ spec:
         target:
           type: Utilization
           averageUtilization: ${{values.hpa_avg_cpu_utilization}}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: ${{values.hpa_avg_memory_utilization}}
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress

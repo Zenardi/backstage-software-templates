@@ -4,6 +4,14 @@ metadata:
   name: cluster-role
   labels:
     role: cluster
+    environment: ${{values.app_env}}
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   providerConfigRef:
     kind: ClusterProviderConfig
@@ -25,6 +33,15 @@ apiVersion: iam.aws.m.upbound.io/v1beta1
 kind: RolePolicyAttachment
 metadata:
   name: eks-cluster-policy
+  labels:
+    environment: ${{values.app_env}}
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   providerConfigRef:
     kind: ClusterProviderConfig
@@ -38,6 +55,15 @@ apiVersion: iam.aws.m.upbound.io/v1beta1
 kind: Role
 metadata:
   name: node-role
+  labels:
+    environment: ${{values.app_env}}
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   providerConfigRef:
     kind: ClusterProviderConfig
@@ -60,6 +86,15 @@ apiVersion: iam.aws.m.upbound.io/v1beta1
 kind: RolePolicyAttachment
 metadata:
   name: eks-node-worker
+  labels:
+    environment: ${{values.app_env}}
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   providerConfigRef:
     kind: ClusterProviderConfig
@@ -73,6 +108,15 @@ apiVersion: iam.aws.m.upbound.io/v1beta1
 kind: RolePolicyAttachment
 metadata:
   name: eks-node-cni
+  labels:
+    environment: ${{values.app_env}}
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   providerConfigRef:
     kind: ClusterProviderConfig
@@ -86,6 +130,15 @@ apiVersion: iam.aws.m.upbound.io/v1beta1
 kind: RolePolicyAttachment
 metadata:
   name: eks-node-registry
+  labels:
+    environment: ${{values.app_env}}
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 spec:
   providerConfigRef:
     kind: ClusterProviderConfig

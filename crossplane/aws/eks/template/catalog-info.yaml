@@ -6,6 +6,11 @@ metadata:
   annotations:
     github.com/project-slug: ${{values.destination.owner + "/" + values.destination.repo}}
     backstage.io/techdocs-ref: dir:.
+
+    # Kubernetes cluster linkage
+    backstage.io/kubernetes-id: ${{values.cluster_name}}
+    deployment-target-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
   tags:
     - aws
     - eks

@@ -8,8 +8,10 @@ metadata:
     backstage.io/techdocs-ref: dir:.
     grafana/dashboard-selector: "title == '${{values.app_name}}'"
     grafana/alert-label-selector: "app=${{values.app_name}}"
-    backstage.io/kubernetes-id: ${{values.targetCluster}}
-    deployment-target-cluster: ${{values.targetCluster}}
+
+    # Kubernetes cluster linkage
+    backstage.io/kubernetes-id: ${{values.app_name}}
+    deployment-target-cluster: ${{values.targetCluster.split('/')[1]}}
     backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 
   links:
