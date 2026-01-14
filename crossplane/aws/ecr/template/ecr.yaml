@@ -1,0 +1,57 @@
+apiVersion: ecr.aws.m.upbound.io/v1beta1
+kind: Repository
+metadata:
+  name: ${{ values.repo_name }}
+spec:
+  providerConfigRef:
+    name: default
+    kind: ClusterProviderConfig
+  forProvider:
+    region: ${{ values.repo_region }}
+    encryptionConfiguration:
+      - encryptionType: AES256
+    imageScanningConfiguration:
+      scanOnPush: true
+    imageTagMutability: MUTABLE
+    tags:
+      Name: ${{ values.repo_name }}
+      Environment: production
+      Team: ${{ values.team }}
+      System: ${{ values.system }}
+      Description: ${{ values.description }}
+  managementPolicies:
+    - '*'
+
+---
+apiVersion: ecr.aws.m.upbound.io/v1beta1
+kind: LifecyclePolicy
+metadata:
+  name: ${{ values.repo_name }}-lifecycle-policy
+spec:
+  providerConfigRef:
+    name: default
+    kind: ClusterProviderConfig
+  forProvider:
+    region: ${{ values.repo_region }}
+    repositoryRef:
+      name: ${{ values.repo_name }}
+    policy: |
+      {
+        "rules": [
+          {
+            "rulePriority": 1,
+            "description": "Keep last 10 images",
+            "selection": {
+              "tagStatus": "any",
+              "countType": "imageCountMoreThan",
+              "countNumber": 10
+            },
+            "action": {
+              "type": "expire"
+            }
+          }
+        ]
+      }
+  managementPolicies:
+    - '*'
+

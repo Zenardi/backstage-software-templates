@@ -1,0 +1,56 @@
+name: ${{values.bucket_name}}-deployment
+
+on:
+  push:
+    paths:
+      - ecr.yaml
+      - argocd/**
+    branches:
+      - main
+
+jobs:
+  cd:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install argocd
+        shell: bash
+        run: |
+          curl -sSL -o /tmp/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+          chmod +x /tmp/argocd
+          sudo mv /tmp/argocd /usr/local/bin/argocd
+
+      - name: argocd login
+        shell: bash
+        run: |
+          argocd login argocd-server.argocd \
+            --plaintext \
+            --grpc-web \
+            --username admin \
+            --password  ${{ '${{ secrets.ARGOCD_PASSWORD }}' }}
+
+      # Install kubectl 
+      - name: Install kubectl
+        shell: bash
+        run: |
+          curl -sSL -o /tmp/kubectl https://dl.k8s.io/release/v1.28.0/bin/linux/amd64/kubectl
+          chmod +x /tmp/kubectl
+          sudo mv /tmp/kubectl /usr/local/bin/kubectl
+
+      - name: Apply Crossplane ECR Resource
+        run: |
+          kubectl apply -f providers.yaml
+          kubectl apply -f provider-config.yaml
+          kubectl apply -f ns.yaml
+          kubectl apply -f ecr.yaml
+
+      - name: Ensure ArgoCD Project
+        shell: bash
+        run: |
+          kubectl apply -f argocd/project.yaml
+
+      - name: Ensure ArgoCD Application
+        shell: bash
+        run: |
+          kubectl apply -f argocd/application.yaml

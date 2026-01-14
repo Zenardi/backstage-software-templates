@@ -1,0 +1,127 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: crossplane-aws-ecr
+  title: Create AWS ECR Repository
+  description: Deploy an AWS ECR repository using Crossplane.
+  tags:
+    - crossplane
+    - aws
+    - ecr
+    - infrastructure
+    - container-registry
+spec:
+  type: crossplane-xr
+  owner: group:default/platform-engineering
+  lifecycle: experimental
+  parameters:
+    - title: ECR Repository Details
+      required:
+        - repo_name
+        - repo_region
+        - description
+        - owner
+        - system
+      properties:
+        repo_name:
+          title: ECR Repository Name
+          type: string
+          description: Unique name for the ECR repository.
+          ui:autofocus: true
+        description:
+          title: Description
+          type: string
+          description: A brief description of the ECR repository.
+        repo_region:
+          title: AWS Region
+          type: string
+          description: The AWS region where the ECR repository will be created.
+          enum:
+            - us-east-1
+            - us-east-2
+            - us-west-1
+            - us-west-2        
+            - eu-west-1
+            - eu-central-1
+            - ap-southeast-1
+            - ap-southeast-2
+            - ap-northeast-1
+        
+        repoUrl:
+          title: Repository URL
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+
+        team:
+          title: Team Responsible
+          type: string
+          description: The Team responsible for this resource.
+          ui:field: EntityPicker
+          ui:options:
+            allowArbitraryValues: false
+            catalogFilter:
+              - kind: Group
+                'spec.type': team
+
+        system:
+          title: System or Project Name this resource belongs to
+          type: string
+          description: The system or project this resource belongs to.
+          ui:field: OwnerPicker
+          ui:options:
+            allowArbitraryValues: false
+            catalogFilter:
+              - kind: System
+                'spec.domain': spacetech
+
+        targetCluster:
+          title: Deploy To Kubernetes Cluster
+          type: string
+          description: Pick Kubernetes Cluster
+          ui:field: EntityPicker
+          ui:options:
+            allowArbitraryValues: false
+            catalogFilter:
+              - kind: Resource
+                'spec.type': kubernetes-cluster
+
+  steps:
+    - id: template
+      name: Fetch Skeleton + Template
+      action: fetch:template
+      input:
+        url: ./template
+        values:
+          repo_name: ${{ parameters.repo_name }}
+          bucket_region: ${{ parameters.bucket_region }}
+          team: ${{ parameters.team }}
+          description: ${{ parameters.description }}
+          system: ${{ parameters.system }}
+          destination: ${{ parameters.repoUrl | parseRepoUrl }}
+          targetCluster: ${{parameters.targetCluster}}
+
+    - id: publish
+      name: Publish
+      action: publish:github
+      input:
+        repoUrl: ${{ parameters.repoUrl }}
+        protectDefaultBranch: false
+        repoVisibility: public
+
+    - id: register
+      name: Register
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: "/catalog-info.yaml"
+  output:
+    links:
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}
+      - title: Open GitHub Repository
+        icon: code
+        url: ${{ steps.publish.output.remoteUrl }}

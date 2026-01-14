@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: ${{values.bucket_name}}
+  name: ${{values.cluster_name}}
   namespace: argocd
 spec:
   project: ${{values.system.split('/')[1]}}

@@ -1,0 +1,35 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${{values.repo_name}}
+  description: ${{values.description}}
+  annotations:
+    github.com/project-slug: ${{values.destination.owner + "/" + values.destination.repo}}
+    backstage.io/techdocs-ref: dir:.
+
+    # Kubernetes cluster linkage (from your template field)
+    backstage.io/kubernetes-id: ${{values.targetCluster}}
+    deployment-target-cluster: ${{values.targetCluster}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+    
+    # Infrastructure as Code
+    # crossplane.io/claim-name: ${{values.bucket_name}}
+  tags:
+    - aws
+    - ecr
+    - crossplane
+    - infrastructure
+    - iac
+    - container-registry
+  links:
+    - url: https://${{values.repo_region}}.console.aws.amazon.com/ecr/repositories/${{values.repo_name}}?region=${{values.repo_region}}
+      title: AWS ECR
+    - url: https://argocd.local/applications/argocd/${{values.repo_name}}?view=tree&resource=
+      title: ArgoCD
+spec:
+  type: service # crossplane-xr
+  owner: ${{ values.team }}
+  lifecycle: experimental
+  system: ${{values.system}}
+  dependsOn:
+    - ${{values.targetCluster}}

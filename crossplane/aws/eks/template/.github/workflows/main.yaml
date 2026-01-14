@@ -18,6 +18,22 @@ jobs:
           chmod +x /tmp/kubectl
           sudo mv /tmp/kubectl /usr/local/bin/kubectl
 
+      - name: Install argocd
+        shell: bash
+        run: |
+          curl -sSL -o /tmp/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+          chmod +x /tmp/argocd
+          sudo mv /tmp/argocd /usr/local/bin/argocd
+
+      - name: argocd login
+        shell: bash
+        run: |
+          argocd login argocd-server.argocd \
+            --plaintext \
+            --grpc-web \
+            --username admin \
+            --password  ${{ '${{ secrets.ARGOCD_PASSWORD }}' }}
+
       - name: "Phase 1: Deploying providers..."
         run: |
           echo "Phase 1: Deploying providers..."
@@ -58,3 +74,12 @@ jobs:
           echo "Configure kubeconfig with:"
           echo "aws eks update-kubeconfig --name ${{values.cluster_name}} --region ${{values.eks_region}}"
 
+      - name: Ensure ArgoCD Project
+        shell: bash
+        run: |
+          kubectl apply -f argocd/project.yaml
+
+      - name: Ensure ArgoCD Application
+        shell: bash
+        run: |
+          kubectl apply -f argocd/application.yaml
