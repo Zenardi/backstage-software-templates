@@ -12,7 +12,7 @@ metadata:
     # Kubernetes cluster linkage (from your template field)
     backstage.io/kubernetes-id: ${{values.targetCluster}}
     deployment-target-cluster: ${{values.targetCluster}}
-    backstage.io/kubernetes-namespace: ${{values.project_name.split('/')[1]}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 
   links:
     - url: http://${{values.domain_name}}
@@ -28,8 +28,8 @@ metadata:
     - typescript
 spec:
   type: website
-  owner: ${{values.owner}}
+  owner: ${{values.team}}
   lifecycle: experimental
-  system: ${{values.project_name}}
+  system: ${{values.system}}
   dependsOn:
     - ${{values.targetCluster}}

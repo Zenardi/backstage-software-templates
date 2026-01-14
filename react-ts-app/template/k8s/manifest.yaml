@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: ${{values.project_name.split('/')[1]}}
+  name: ${{values.system.split('/')[1]}}
   labels:
     environment: ${{values.app_env}}
   annotations:
@@ -11,7 +11,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ${{values.app_name}}
-  namespace: ${{values.project_name.split('/')[1]}}
+  namespace: ${{values.system.split('/')[1]}}
   labels:
     app: ${{values.app_name}}
     environment: ${{values.app_env}}
@@ -57,7 +57,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ${{values.app_name}}-service
-  namespace: ${{values.project_name.split('/')[1]}}
+  namespace: ${{values.system.split('/')[1]}}
   labels:
     environment: ${{values.app_env}}
   annotations:
@@ -75,7 +75,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: ${{values.app_name}}-hpa
-  namespace: ${{values.project_name.split('/')[1]}}
+  namespace: ${{values.system.split('/')[1]}}
   labels:
     environment: ${{values.app_env}}
   annotations:
@@ -99,7 +99,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ${{values.app_name}}-ingress
-  namespace: ${{values.project_name.split('/')[1]}}
+  namespace: ${{values.system.split('/')[1]}}
   labels:
     environment: ${{values.app_env}}
   annotations:

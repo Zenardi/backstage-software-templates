@@ -22,7 +22,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: zenardi/${{values.app_name}}:latest
+          tags: ${{ '${{ secrets.DOCKERHUB_USERNAME }}' }}/${{values.app_name}}:latest
 
   cd:
     needs: ci
@@ -30,6 +30,13 @@ jobs:
     steps:
 
       - uses: actions/checkout@v3
+
+      - name: Install kubectl
+        shell: bash
+        run: |
+          curl -sSL -o /tmp/kubectl https://dl.k8s.io/release/v1.28.0/bin/linux/amd64/kubectl
+          chmod +x /tmp/kubectl
+          sudo mv /tmp/kubectl /usr/local/bin/kubectl
 
       - name: Install argocd
         shell: bash
@@ -47,25 +54,20 @@ jobs:
             --username admin \
             --password  ${{ '${{ secrets.ARGOCD_PASSWORD }}' }}
 
-      - name: Ensure argocd repo and app
+      - name: Deploy to Local Cluster
+        run: |
+          echo "🚀 Applying manifests from k8s/ folder..."
+          kubectl apply -f k8s/
+          
+          echo "⏳ Waiting for rollout..."
+          kubectl rollout status deployment/${{values.app_name}} -n ${{values.system.split('/')[1]}} --timeout=90s
+
+      - name: Ensure ArgoCD Project
         shell: bash
         run: |
+          kubectl apply -f argocd/project.yaml
 
-          # Connects the argocd repo
-          repo="https://github.com/zenardi-org/${{values.app_name}}.git"
-          argocd repo list | grep -q $repo || argocd repo add $repo
-
-          # Creates the argocd app
-          argocd app get ${{values.app_name}} || argocd app create ${{values.app_name}} \
-            --repo $repo \
-            --path k8s \
-            --dest-namespace ${{values.app_env}} \
-            --dest-server https://kubernetes.default.svc \
-            --revision main \
-            --sync-policy manual \
-            --sync-option CreateNamespace=true
-
-      - name: Argocd app sync
+      - name: Ensure ArgoCD Application
         shell: bash
         run: |
-          argocd app sync ${{values.app_name}}
+          kubectl apply -f argocd/application.yaml

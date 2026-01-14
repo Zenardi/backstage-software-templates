@@ -1,6 +1,6 @@
 site_name: '${{values.app_name}}'
 site_description: 'Main documentation for the ${{values.app_name}}'
-repo_url: https://github.com/zenardi-org/${{values.app_name}}
+repo_url: https://github.com/${{values.destination.owner + "/" + values.destination.repo}}
 edit_uri: edit/main/docs
 
 plugins:
