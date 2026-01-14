@@ -112,7 +112,7 @@ spec:
           title: Deployment Replicas
           type: number
           description: Number of replicas for the deployment
-          default: 2
+          default: 1
         hpa_min_replicas:
           title: Horizontal Pod Autoscaler Minimum Replicas
           type: number
