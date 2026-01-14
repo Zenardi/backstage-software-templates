@@ -19,8 +19,8 @@ spec:
         - component_id
         - environment
         - app_description
-        - owner
         - image_registry
+        - team
       properties:
         component_id:
           title: Component Name
@@ -49,15 +49,8 @@ spec:
           type: string
           description: Container image registry URL (e.g., docker.io/your-username)
           default: docker.io/zenardi
-        owner:
-          title: Owner
-          type: string
-          description: Owner of the component
-          ui:field: OwnerPicker
-          ui:options:
-            catalogFilter:
-              kind: [Group, User]
-        project_name:
+
+        team:
           title: Team Responsible
           type: string
           description: The team responsible for this resource
@@ -67,6 +60,17 @@ spec:
             catalogFilter:
               - kind: Group
                 'spec.type': team
+
+        system:
+          title: System or Project Assignment
+          type: string
+          description: The system or project this resource belongs to.
+          ui:field: OwnerPicker
+          ui:options:
+            allowArbitraryValues: false
+            catalogFilter:
+              - kind: System
+                'spec.domain': spacetech
 
     - title: Repository Configuration
       required:
@@ -136,6 +140,7 @@ spec:
           app_name: ${{ parameters.component_id }}
           app_description: ${{ parameters.app_description }}
           app_env: ${{ parameters.environment }}
+          system: ${{ parameters.system }}
           deploy_replicas: ${{ parameters.deploy_replicas }}
           image_registry: ${{ parameters.image_registry }}
           domain_name: ${{ parameters.domain_name }}
@@ -144,8 +149,7 @@ spec:
           hpa_avg_cpu_utilization: ${{ parameters.hpa_avg_cpu_utilization }}
           artifact_id: ${{ parameters.component_id }}
           java_package_name: ${{ parameters.java_package_name }}
-          owner: ${{ parameters.owner }}
-          project_name: ${{ parameters.project_name }}
+          team: ${{ parameters.team }}
           destination: ${{ parameters.repoUrl | parseRepoUrl }}
           targetCluster: ${{ parameters.targetCluster }}
           http_port: 8080

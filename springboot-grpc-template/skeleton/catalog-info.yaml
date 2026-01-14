@@ -10,7 +10,7 @@ metadata:
     grafana/alert-label-selector: "app=${{values.app_name}}"
     backstage.io/kubernetes-id: ${{values.targetCluster}}
     deployment-target-cluster: ${{values.targetCluster}}
-    backstage.io/kubernetes-namespace: ${{values.project_name.split('/')[1]}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
 
   links:
     - url: http://${{values.domain_name}}
@@ -30,144 +30,144 @@ metadata:
 spec:
   type: openapi
   lifecycle: experimental
-  owner: ${{values.owner}}
+  owner: ${{values.team}}
   definition: |
     {
-    "openapi": "3.0.1",
-    "info": {
-      "title": "Greeter gRPC Service API",
-      "description": "REST API wrapper for the gRPC Greeter service. This service provides a simple hello world greeting functionality exposed via both gRPC and REST endpoints.",
-      "contact": {
-        "name": "API Support",
-        "email": "support@example.com"
-      },
-      "license": {
-        "name": "Apache 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
-      },
-      "version": "1.0.0"
-    },
-    "servers": [
-      {
-        "url": "http://localhost:8080",
-        "description": "Local Development Server"
-      },
-      {
-        "url": "https://api.example.com",
-        "description": "Production Server"
-      }
-    ],
-    "tags": [
-      {
-        "name": "Greeter API",
-        "description": "REST endpoints for the Greeter gRPC service"
-      }
-    ],
-    "paths": {
-      "/api/greet/hello": {
-        "post": {
-          "tags": [
-            "Greeter API"
-          ],
-          "summary": "Say Hello (POST)",
-          "description": "Returns a greeting message for the provided name via POST request",
-          "operationId": "sayHelloPost",
-          "requestBody": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GreetingRequest"
-                }
-              }
-            },
-            "required": true
+      "openapi":"3.0.1",
+      "info":{
+          "title":"Greeter gRPC Service API",
+          "description":"REST API wrapper for the gRPC Greeter service. This service provides a simple hello world greeting functionality exposed via both gRPC and REST endpoints.",
+          "contact":{
+            "name":"API Support",
+            "email":"support@example.com"
           },
-          "responses": {
-            "200": {
-              "description": "Successfully generated greeting",
-              "content": {
-                "*/*": {
-                  "schema": {
-                    "$ref": "#/components/schemas/GreetingResponse"
+          "license":{
+            "name":"Apache 2.0",
+            "url":"https://www.apache.org/licenses/LICENSE-2.0.html"
+          },
+          "version":"1.0.0"
+      },
+      "servers":[
+          {
+            "url":"http://localhost:8080",
+            "description":"Local Development Server"
+          },
+          {
+            "url":"https://api.example.com",
+            "description":"Production Server"
+          }
+      ],
+      "tags":[
+          {
+            "name":"Greeter API",
+            "description":"REST endpoints for the Greeter gRPC service"
+          }
+      ],
+      "paths":{
+          "/api/greet/hello":{
+            "post":{
+                "tags":[
+                  "Greeter API"
+                ],
+                "summary":"Say Hello (POST)",
+                "description":"Returns a greeting message for the provided name via POST request",
+                "operationId":"sayHelloPost",
+                "requestBody":{
+                  "content":{
+                      "application/json":{
+                        "schema":{
+                            "$ref":"#/components/schemas/GreetingRequest"
+                        }
+                      }
+                  },
+                  "required":true
+                },
+                "responses":{
+                  "200":{
+                      "description":"Successfully generated greeting",
+                      "content":{
+                        "*/*":{
+                            "schema":{
+                              "$ref":"#/components/schemas/GreetingResponse"
+                            }
+                        }
+                      }
                   }
                 }
-              }
+            }
+          },
+          "/api/greet/hello/{name}":{
+            "get":{
+                "tags":[
+                  "Greeter API"
+                ],
+                "summary":"Say Hello",
+                "description":"Returns a greeting message for the provided name. This endpoint wraps the gRPC SayHello method.",
+                "operationId":"sayHello",
+                "parameters":[
+                  {
+                      "name":"name",
+                      "in":"path",
+                      "description":"Name of the person to greet",
+                      "required":true,
+                      "schema":{
+                        "type":"string"
+                      },
+                      "example":"World"
+                  }
+                ],
+                "responses":{
+                  "200":{
+                      "description":"Successfully generated greeting",
+                      "content":{
+                        "application/json":{
+                            "schema":{
+                              "$ref":"#/components/schemas/GreetingResponse"
+                            }
+                        }
+                      }
+                  },
+                  "400":{
+                      "description":"Invalid name provided",
+                      "content":{
+                        "*/*":{
+                            "schema":{
+                              "$ref":"#/components/schemas/GreetingResponse"
+                            }
+                        }
+                      }
+                  }
+                }
             }
           }
-        }
       },
-      "/api/greet/hello/{name}": {
-        "get": {
-          "tags": [
-            "Greeter API"
-          ],
-          "summary": "Say Hello",
-          "description": "Returns a greeting message for the provided name. This endpoint wraps the gRPC SayHello method.",
-          "operationId": "sayHello",
-          "parameters": [
-            {
-              "name": "name",
-              "in": "path",
-              "description": "Name of the person to greet",
-              "required": true,
-              "schema": {
-                "type": "string"
-              },
-              "example": "World"
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Successfully generated greeting",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/GreetingResponse"
+      "components":{
+          "schemas":{
+            "GreetingRequest":{
+                "required":[
+                  "name"
+                ],
+                "type":"object",
+                "properties":{
+                  "name":{
+                      "type":"string",
+                      "description":"Name of the person to greet",
+                      "example":"World"
                   }
-                }
-              }
+                },
+                "description":"Request body with the name"
             },
-            "400": {
-              "description": "Invalid name provided",
-              "content": {
-                "*/*": {
-                  "schema": {
-                    "$ref": "#/components/schemas/GreetingResponse"
+            "GreetingResponse":{
+                "type":"object",
+                "properties":{
+                  "message":{
+                      "type":"string",
+                      "description":"The greeting message",
+                      "example":"Hello World from Java 25!"
                   }
-                }
-              }
+                },
+                "description":"Response object containing the greeting message"
             }
           }
-        }
-      }
-    },
-    "components": {
-      "schemas": {
-        "GreetingRequest": {
-          "required": [
-            "name"
-          ],
-          "type": "object",
-          "properties": {
-            "name": {
-              "type": "string",
-              "description": "Name of the person to greet",
-              "example": "World"
-            }
-          },
-          "description": "Request body with the name"
-        },
-        "GreetingResponse": {
-          "type": "object",
-          "properties": {
-            "message": {
-              "type": "string",
-              "description": "The greeting message",
-              "example": "Hello World from Java 25!"
-            }
-          },
-          "description": "Response object containing the greeting message"
-        }
       }
     }
-  }

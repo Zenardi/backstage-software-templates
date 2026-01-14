@@ -15,21 +15,11 @@ spec:
   sourceRepos: 
   - '*'
 
-  # Define which cluster-level resources can be managed. By default, nothing is allowed.
-  # This example allows managing Namespaces.
+  # Allow creation of cluster-scoped resources (Namespaces, ClusterRoles, etc.)
   clusterResourceWhitelist:
-  - group: 'pkg.crossplane.io'
-    kind: 'Provider'
-  - group: 'aws.m.upbound.io'
-    kind: 'ClusterProviderConfig'
-  - group: '' # The empty group means the core Kubernetes API
-    kind: 'Namespace'
-
-  # Define which namespaced resources can be managed.
-  # This is a good practice to restrict permissions.
-  # For example, to allow only Deployments and Services:
-  # namespaceResourceWhitelist:
-  # - group: 'apps'
-  #   kind: 'Deployment'
-  # - group: ''
-  #   kind: 'Service'
+  - group: ''
+    kind: Namespace
+  - group: 'rbac.authorization.k8s.io'
+    kind: ClusterRole
+  - group: 'rbac.authorization.k8s.io'
+    kind: ClusterRoleBinding
