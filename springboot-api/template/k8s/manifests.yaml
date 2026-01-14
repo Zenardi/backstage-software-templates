@@ -99,9 +99,8 @@ kind: Ingress
 metadata:
   name: ${{values.app_name}}-ingress
   namespace: ${{values.system.split('/')[1]}}
-  annotations:
-    kubernetes.io/ingress.class: nginx
 spec:
+  ingressClassName: traefik
   rules:
     - host: ${{values.domain_name}}
       http:
