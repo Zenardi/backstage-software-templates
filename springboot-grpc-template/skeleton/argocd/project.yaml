@@ -1,10 +1,10 @@
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: ${{values.project_name.split('/')[1]}}
+  name: ${{values.system.split('/')[1]}}
   namespace: argocd
 spec:
-  description: ${{values.project_name.split('/')[1]}} Project
+  description: ${{values.system.split('/')[1]}} Project
   
   # Allow applications in this project to deploy to any namespace on the local cluster.
   destinations:
