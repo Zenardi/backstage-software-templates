@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/${{values.destination.owner + "/" + values.destination.repo}}.git
     targetRevision: main
-    path: .
+    path: k8s
   destination:
     server: https://kubernetes.default.svc
     namespace: ${{values.system.split('/')[1]}}

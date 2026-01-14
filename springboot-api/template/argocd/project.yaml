@@ -15,3 +15,11 @@ spec:
   sourceRepos: 
   - '*'
 
+  # Allow creation of cluster-scoped resources (Namespaces, ClusterRoles, etc.)
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  - group: 'rbac.authorization.k8s.io'
+    kind: ClusterRole
+  - group: 'rbac.authorization.k8s.io'
+    kind: ClusterRoleBinding
