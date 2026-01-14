@@ -2,11 +2,34 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: ${{values.app_name}}
-  description: Python app that displays time - named ${{values.app_name}}
+  description: '${{values.app_description}}'
   annotations:
-    github.com/project-slug: zenardi-org/${{values.app_name}}
+    github.com/project-slug: ${{values.destination.owner + "/" + values.destination.repo}}
     backstage.io/techdocs-ref: dir:.
+    grafana/dashboard-selector: "title == '${{values.app_name}}'"
+    grafana/alert-label-selector: "app=${{values.app_name}}"
+    
+    # Kubernetes cluster linkage (from your template field)
+    backstage.io/kubernetes-id: ${{values.targetCluster}}
+    deployment-target-cluster: ${{values.targetCluster}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+
+  links:
+    - url: http://${{values.domain_name}}
+      title: ${{values.app_name}} Link
+      icon: dashboard
+      type: admin-dashboard
+    - url: https://argocd.local/applications/argocd/${{values.app_name}}?view=tree&resource=
+      title: ArgoCD
+      icon: dashboard
+      type: admin-dashboard
+  tags:
+    - python
+    - flask
 spec:
   type: service
-  owner: development
+  owner: ${{values.team}}
   lifecycle: experimental
+  system: ${{values.system}}
+  dependsOn:
+    - ${{values.targetCluster}}

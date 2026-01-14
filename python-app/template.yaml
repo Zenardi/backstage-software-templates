@@ -9,23 +9,111 @@ spec:
   type: service
 
   parameters:
-    - title: Fill in some steps
+    - title: App Info
       required:
         - component_id
         - environment
+        - app_description
+        - team
+        - image_registry
       properties:
+        
         component_id:
           title: Component name
           type: string
-          description: Provide a component (microservice) name
+          description: Provide App name
           pattern: '^([a-zA-Z][a-zA-Z0-9]*)(-[a-zA-Z0-9]+)*$'
+        
+        app_description:
+          title: Application Description
+          type: string
+          description: A short description of the application
+        
         environment:
           title: Environment
           type: string
           description: The environment where this component will be deployed
           enum:
+            - poc
             - dev
+            - staging
             - prod
+        
+        image_registry:
+          title: Image Registry (ContainerRegistry/ImageName, e.g. docker.io/your-app)
+          type: string
+          description: Container image registry URL
+          default: docker.io/zenardi
+
+        team:
+          title: Team Responsible
+          type: string
+          description: The Team responsible for this resource.
+          ui:field: EntityPicker
+          ui:options:
+            allowArbitraryValues: false
+            catalogFilter:
+              - kind: Group
+                'spec.type': team
+
+    - title: Select Repo
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Repository Location
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+
+    - title: Kubernetes Deployment Specs
+      required: 
+        - deploy_replicas
+        - domain_name
+        - hpa_min_replicas
+        - hpa_max_replicas
+        - hpa_avg_cpu_utilization
+      properties:
+      
+        targetCluster:
+          title: Deploy To Kubernetes Cluster
+          type: string
+          description: Pick Kubernetes Cluster
+          ui:field: EntityPicker
+          ui:options:
+            allowArbitraryValues: false
+            catalogFilter:
+              - kind: Resource
+                'spec.type': kubernetes-cluster
+
+        deploy_replicas:
+          title: Deployment Replicas
+          type: number
+          description: Number of replicas for the deployment
+          default: 2
+        hpa_min_replicas:
+          title: Horizontal Pod Autoscaler Minimum Replicas
+          type: number
+          description: Minimum number of replicas for the HPA
+          default: 1
+        hpa_max_replicas:
+          title: Horizontal Pod Autoscaler Maximum Replicas
+          type: number
+          description: Maximum number of replicas for the HPA
+          default: 5
+        hpa_avg_cpu_utilization:
+          title: Horizontal Pod Autoscaler Average CPU Utilization
+          type: number
+          description: Average CPU utilization percentage for triggering scaling (0-100)
+          default: 70
+        domain_name:
+          title: Domain Name
+          type: string
+          description: The domain name for the application
+          default: local.com
+        
 
   steps:
     - id: fetch-base
@@ -35,16 +123,27 @@ spec:
         url: ./template
         values:
           app_name: ${{parameters.component_id}}
+          app_description: ${{parameters.app_description}}
           app_env: ${{parameters.environment}}
+          deploy_replicas: ${{parameters.deploy_replicas}}
+          image_registry: ${{parameters.image_registry}}
+          domain_name: ${{parameters.domain_name}}
+          hpa_min_replicas: ${{parameters.hpa_min_replicas}}
+          hpa_max_replicas: ${{parameters.hpa_max_replicas}}
+          hpa_avg_cpu_utilization: ${{parameters.hpa_avg_cpu_utilization}}
+          destination: ${{ parameters.repoUrl | parseRepoUrl }}
+          targetCluster: ${{parameters.targetCluster}}
+          team: ${{parameters.team}}
+          http_port: 5000
+
+
 
     - id: publish
       name: Publish
       action: publish:github
       input:
-        # allowedHosts:
-        #   - github.com
-        description: This is ${{ parameters.component_id }}
-        repoUrl: github.com?owner=zenardi-org&repo=${{parameters.component_id}}
+        description: "A React (TypeScript) application: ${{ parameters.component_id }}"
+        repoUrl: ${{ parameters.repoUrl }}
         protectDefaultBranch: false
         repoVisibility: public
 
@@ -57,6 +156,11 @@ spec:
 
   output:
     links:
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}
       - title: Repository
         url: ${{ steps['publish'].output.remoteUrl }}
+        icon: 'github'
+
 
