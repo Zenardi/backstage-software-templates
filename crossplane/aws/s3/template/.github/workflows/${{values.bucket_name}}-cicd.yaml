@@ -69,7 +69,20 @@ jobs:
 
       - name: Apply Crossplane S3 Resource
         run: |
+          set -e
+          
+          echo "Applying provider..."
           kubectl apply -f provider.yaml
+          echo "Waiting for provider to be ready..."
+          kubectl wait --for=condition=Installed --timeout=60s provider.pkg.crossplane.io --all
+          
+          echo "Applying provider config..."
           kubectl apply -f provider-config.yaml
+          echo "Waiting for provider config to be ready..."
+          kubectl wait --for=condition=Ready --timeout=60s -f provider-config.yaml
+          
+          echo "Applying S3 resource..."
           kubectl apply -f s3.yaml
+          echo "Waiting for S3 resource to be ready..."
+          kubectl wait --for=condition=Ready --timeout=120s -f s3.yaml
 
