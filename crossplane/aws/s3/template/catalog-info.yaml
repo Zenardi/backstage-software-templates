@@ -11,10 +11,15 @@ metadata:
     backstage.io/kubernetes-id: ${{values.bucket_name}}
     deployment-target-cluster: ${{values.targetCluster.split('/')[1]}}
     backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
-    
-    # Infrastructure as Code
-    # crossplane.io/claim-name: ${{values.bucket_name}}
-    # crossplane.io/composite-resource-name: my-db-xr
+
+    # Crossplane linkage
+    crossplane.io/managed-resource-name: ${{values.bucket_name}}
+    crossplane.io/managed-resource-namespace: ${{values.system.split('/')[1]}}
+    crossplane.io/managed-resource-kind: Bucket
+  labels:
+    crossplane.io/managed-resource-name: ${{values.bucket_name}}
+    crossplane.io/managed-resource-namespace: ${{values.system.split('/')[1]}}
+    crossplane.io/managed-resource-kind: Bucket
   tags:
     - aws
     - s3
@@ -27,7 +32,7 @@ metadata:
     - url: https://argocd.local/applications/argocd/${{values.bucket_name}}?view=tree&resource=kind%3ABucket
       title: ArgoCD
 spec:
-  type: crossplane-claim  # or crossplane-xr
+  type: service
   owner: ${{ values.team }}
   lifecycle: experimental
   system: ${{values.system}}
