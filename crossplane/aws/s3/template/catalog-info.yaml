@@ -14,6 +14,7 @@ metadata:
     
     # Infrastructure as Code
     # crossplane.io/claim-name: ${{values.bucket_name}}
+    # crossplane.io/composite-resource-name: my-db-xr
   tags:
     - aws
     - s3
@@ -26,9 +27,23 @@ metadata:
     - url: https://argocd.local/applications/argocd/${{values.bucket_name}}?view=tree&resource=kind%3ABucket
       title: ArgoCD
 spec:
-  type: service # crossplane-xr
+  type: crossplane-claim  # or crossplane-xr
   owner: ${{ values.team }}
   lifecycle: experimental
   system: ${{values.system}}
   dependsOn:
     - ${{values.targetCluster}}
+
+# ---
+# apiVersion: backstage.io/v1alpha1
+# kind: crossplane
+# metadata:
+#   name: my-database-claim
+#   description: A Crossplane composite resource claim for PostgreSQL database
+#   labels:
+#     team: platform
+#   annotations:
+#     crossplane.io/composite-resource-name: my-db-xr
+# spec:
+#   owner: platform-team@example.com
+#   crossplaneResourceType: claim  # or 'xr' for composite resources
