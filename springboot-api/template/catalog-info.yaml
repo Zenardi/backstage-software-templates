@@ -13,6 +13,19 @@ metadata:
     backstage.io/kubernetes-id: ${{values.app_name}}
     deployment-target-cluster: ${{values.targetCluster.split('/')[1]}}
     backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  links:
+    - url: http://${{values.domain_name}}
+      title: ${{values.app_name}} Link
+      icon: dashboard
+      type: admin-dashboard
+    - url: https://argocd.local/applications/argocd/${{values.app_name}}?view=tree&resource=
+      title: ArgoCD
+      icon: dashboard
+      type: admin-dashboard
+  tags:
+    - java
+    - springboot
+    - api
 spec:
   type: openapi
   lifecycle: experimental
