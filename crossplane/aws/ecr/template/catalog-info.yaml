@@ -8,7 +8,7 @@ metadata:
     backstage.io/techdocs-ref: dir:.
 
     # Kubernetes cluster linkage
-    backstage.io/kubernetes-id: ${{values.app_name}}
+    backstage.io/kubernetes-id: ${{values.repo_name}}
     deployment-target-cluster: ${{values.targetCluster.split('/')[1]}}
     backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
     
