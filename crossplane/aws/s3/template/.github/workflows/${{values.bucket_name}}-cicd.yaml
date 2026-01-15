@@ -70,5 +70,6 @@ jobs:
       - name: Apply Crossplane S3 Resource
         run: |
           kubectl apply -f provider.yaml
+          kubectl apply -f provider-config.yaml
           kubectl apply -f s3.yaml
 

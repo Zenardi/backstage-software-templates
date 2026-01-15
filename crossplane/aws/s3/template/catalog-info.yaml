@@ -1,15 +1,4 @@
 apiVersion: backstage.io/v1alpha1
-kind: Resource
-metadata:
-  name: crossplane-provider-aws-s3
-  description: The Crossplane provider for AWS S3.
-spec:
-  type: crossplane-provider
-  owner: group:default/platform-engineering
-
----
-
-apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: ${{values.bucket_name}}
@@ -42,5 +31,4 @@ spec:
   lifecycle: experimental
   system: ${{values.system}}
   dependsOn:
-    - resource:default/crossplane-provider-aws-s3
     - ${{values.targetCluster}}
