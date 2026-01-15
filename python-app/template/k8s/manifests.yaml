@@ -36,15 +36,15 @@ spec:
               name: http
           readinessProbe:
             httpGet:
-              path: /actuator/health
-              port: ${{values.http_port}}
+              path: /api/v1/healthz
+              port: 5000
             initialDelaySeconds: 10
             periodSeconds: 5
             failureThreshold: 3
           livenessProbe:
             httpGet:
-              path: /actuator/health
-              port: ${{values.http_port}}
+              path: /api/v1/healthz
+              port: 5000
             initialDelaySeconds: 15
             periodSeconds: 10
             failureThreshold: 3
