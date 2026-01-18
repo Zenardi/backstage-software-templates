@@ -77,11 +77,6 @@ jobs:
           echo "Waiting for providers to be ready..."
           kubectl wait --for=condition=Installed --timeout=60s provider.pkg.crossplane.io --all
           
-          echo "Applying provider config..."
-          kubectl apply -f provider-config.yaml
-          echo "Waiting for provider config to be ready..."
-          kubectl wait --for=condition=Ready --timeout=60s -f provider-config.yaml
-          
           echo "Applying ECR resource..."
           kubectl apply -f ecr.yaml
           echo "Waiting for ECR resource to be ready..."

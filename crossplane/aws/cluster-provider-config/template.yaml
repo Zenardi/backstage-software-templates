@@ -9,6 +9,7 @@ metadata:
     - aws
     - cluster-provider-config
     - infrastructure
+    - iac
 spec:
   type: crossplane-xr
   owner: group:default/platform-engineering
