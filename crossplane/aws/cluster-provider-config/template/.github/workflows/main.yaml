@@ -1,0 +1,86 @@
+name: Deploy AWS Cluster Provider Config for Crossplane
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install kubectl
+        shell: bash
+        run: |
+          curl -sSL -o /tmp/kubectl https://dl.k8s.io/release/v1.28.0/bin/linux/amd64/kubectl
+          chmod +x /tmp/kubectl
+          sudo mv /tmp/kubectl /usr/local/bin/kubectl
+
+      # - name: Configure kubeconfig
+      #   run: |
+      #     mkdir -p $HOME/.kube
+      #     echo "${{ secrets.KUBECONFIG }}" | base64 -d > $HOME/.kube/config
+      #     chmod 600 $HOME/.kube/config
+
+      - name: Create crossplane-system namespace
+        run: |
+          kubectl create namespace crossplane-system --dry-run=client -o yaml | kubectl apply -f -
+          echo "✓ Namespace crossplane-system ensured"
+
+      - name: Create AWS credentials secret
+        run: |
+          # Create AWS credentials file from GitHub secrets
+          cat > aws-credentials.txt << 'EOF'
+          [default]
+          aws_access_key_id = ${{ '${{ secrets.AWS_ACCESS_KEY_ID }}' }}
+          aws_secret_access_key = ${{ '${{ secrets.AWS_SECRET_ACCESS_KEY }}' }}
+          EOF
+
+          # Create or update the secret
+          kubectl create secret generic aws-secret \
+            -n crossplane-system \
+            --from-file=creds=./aws-credentials.txt \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          # Clean up the credentials file
+          rm aws-credentials.txt
+          echo "✓ AWS credentials secret created in crossplane-system namespace"
+
+      - name: Apply ClusterProviderConfig
+        run: |
+          kubectl apply -f provider-config.yaml
+          echo "✓ ClusterProviderConfig applied"
+
+      - name: Wait for ClusterProviderConfig to be ready
+        run: |
+          sleep 5
+          kubectl wait --for=condition=Ready clusterproviderconfig/default --timeout=60s || true
+
+      - name: Verify ClusterProviderConfig
+        run: |
+          echo "=== Checking if ClusterProviderConfig was created ==="
+          kubectl get clusterproviderconfig
+          
+          echo ""
+          echo "=== Verifying ClusterProviderConfig details ==="
+          kubectl describe clusterproviderconfig default
+          
+          echo ""
+          echo "=== Verifying AWS credentials secret exists ==="
+          kubectl get secret aws-secret -n crossplane-system
+          
+          echo ""
+          echo "✓ All verifications completed successfully!"
+
+      - name: Upload verification logs
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: deployment-verification
+          retention-days: 7
+          path: |
+            provider-config.yaml

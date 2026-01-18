@@ -1,0 +1,113 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: crossplane-cluster-provider-config
+  title: Install Cluster Provider Config for AWS on Kubernetes Cluster
+  description: Deploy an AWS Cluster Provider Config using Crossplane.
+  tags:
+    - crossplane
+    - aws
+    - cluster-provider-config
+    - infrastructure
+spec:
+  type: crossplane-xr
+  owner: group:default/platform-engineering
+  lifecycle: experimental
+  parameters:
+    - title: Cluster Provider Config Details
+      required:
+        - component_name
+        - description
+        - team
+        - system
+        - targetCluster
+      properties:
+        component_name:
+          title: Component Name
+          type: string
+          description: The name of the Crossplane Cluster Provider Config component to create.
+          default: aws-cluster-provider-config
+
+        description:
+          title: Component Description
+          type: string
+          description: A short description of the Cluster Provider Config.
+          default: Crossplane AWS Cluster Provider Config for Kubernetes Cluster
+        
+        repoUrl:
+          title: Repository URL
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+
+        team:
+          title: Team Responsible
+          type: string
+          description: The Team responsible for this resource.
+          ui:field: EntityPicker
+          ui:options:
+            allowArbitraryValues: false
+            catalogFilter:
+              - kind: Group
+                'spec.type': team
+
+        system:
+          title: System or Project Name this resource belongs to
+          type: string
+          description: The system or project this resource belongs to.
+          ui:field: OwnerPicker
+          ui:options:
+            allowArbitraryValues: false
+            catalogFilter:
+              - kind: System
+                'spec.domain': spacetech
+
+        targetCluster:
+          title: Deploy To Kubernetes Cluster
+          type: string
+          description: Pick Kubernetes Cluster
+          ui:field: EntityPicker
+          ui:options:
+            allowArbitraryValues: false
+            catalogFilter:
+              - kind: Resource
+                'spec.type': kubernetes-cluster
+
+  steps:
+    - id: template
+      name: Fetch Skeleton + Template
+      action: fetch:template
+      input:
+        url: ./template
+        values:
+          component_name: ${{ parameters.component_name }}
+          description: ${{ parameters.description }}
+          team: ${{ parameters.team }}
+          system: ${{ parameters.system }}
+          destination: ${{ parameters.repoUrl | parseRepoUrl }}
+          targetCluster: ${{parameters.targetCluster}}
+
+    - id: publish
+      name: Publish
+      action: publish:github
+      input:
+        repoUrl: ${{ parameters.repoUrl }}
+        protectDefaultBranch: false
+        repoVisibility: public
+
+    - id: register
+      name: Register
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: "/catalog-info.yaml"
+  output:
+    links:
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}
+      - title: Open GitHub Repository
+        icon: code
+        url: ${{ steps.publish.output.remoteUrl }}
