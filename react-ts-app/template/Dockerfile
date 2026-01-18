@@ -12,24 +12,28 @@ COPY . .
 # Build the project
 RUN npm run build
 
-# Stage 2: Serve the application with Nginx
-FROM nginx:stable-alpine
+# Stage 2: Serve the application with Nginx and metrics server
+FROM node:20-alpine
+
+# Install nginx
+RUN apk add --no-cache nginx
 
 # Copy the built assets from the build stage
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Add a custom Nginx configuration to support client-side routing
-RUN rm /etc/nginx/conf.d/default.conf
-RUN echo "server { \
-    listen 80; \
-    server_name localhost; \
-    root /usr/share/nginx/html; \
-    index index.html; \
-    location / { \
-        try_files \$uri \$uri/ /index.html; \
-    } \
-}" > /etc/nginx/conf.d/default.conf
+# Copy metrics server files
+COPY --from=build /app/src/metrics-server.mjs ./src/
+COPY --from=build /app/package.json /app/package-lock.json ./
+RUN npm install --production
 
-# Expose port 80 and start Nginx in the foreground
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+# Add a custom Nginx configuration to support client-side routing
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Copy startup script
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
+# Expose port 80 (nginx) and port 3000 (metrics)
+EXPOSE 80 3000
+
+CMD ["/app/start.sh"]

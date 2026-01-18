@@ -31,17 +31,19 @@ spec:
       containers:
         - name: ${{values.app_name}}
           image: ${{values.image_registry}}/${{values.app_name}}:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
+              name: http
           readinessProbe:
             httpGet:
-              path: /
+              path: /health
               port: 80
             initialDelaySeconds: 5
             periodSeconds: 10
           livenessProbe:
             httpGet:
-              path: /
+              path: /health
               port: 80
             initialDelaySeconds: 15
             periodSeconds: 20
@@ -61,14 +63,19 @@ metadata:
   labels:
     environment: ${{values.app_env}}
   annotations:
-    backstage.io/kubernetes-cluster: ${{ values.targetCluster }}
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
 spec:
   selector:
     app: ${{values.app_name}}
   ports:
-    - protocol: TCP
+    - name: http
+      protocol: TCP
       port: 80
       targetPort: 80
+    - name: metrics
+      protocol: TCP
+      port: 3000
+      targetPort: 3000
   type: ClusterIP
 ---
 apiVersion: autoscaling/v2
