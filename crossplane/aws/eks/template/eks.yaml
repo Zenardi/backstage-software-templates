@@ -58,7 +58,7 @@ spec:
     subnetIdRefs:
       - name: private-subnet-1
       - name: private-subnet-2
-    
+
     
     capacityType: ${{ values.capacity_type }}
     amiType: ${{ values.ami_type }}

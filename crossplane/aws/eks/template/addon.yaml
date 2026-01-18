@@ -51,7 +51,7 @@ spec:
     clusterNameRef:
       name: ${{ values.cluster_name }}
     addonName: coredns
-    addonVersion: "v1.11.4-eksbuild.24"
+    addonVersion: "v1.12.3-eksbuild.1"
     resolveConflictsOnCreate: OVERWRITE
     resolveConflictsOnUpdate: OVERWRITE
 ---

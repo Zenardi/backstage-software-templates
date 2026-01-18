@@ -1,4 +1,4 @@
-name: ${{values.bucket_name}}-deployment
+name: ${{values.bucket_name}}-provisioning
 
 on:
   push:

@@ -248,11 +248,11 @@ spec:
     name: default
     kind: ClusterProviderConfig
   forProvider:
-    region: us-east-1
+    region: ${{ values.eks_region }}
     subnetIdRef:
       name: private-subnet-1
     routeTableIdRef:
-      name: private-rt
+      name: ${{ values.cluster_name }}-private-rt
 ---
 # Route Table for Public Subnet (Points to IGW)
 apiVersion: ec2.aws.m.upbound.io/v1beta1
