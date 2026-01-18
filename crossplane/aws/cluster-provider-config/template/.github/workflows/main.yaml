@@ -10,8 +10,7 @@ jobs:
     runs-on: self-hosted
     
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
       - name: Install kubectl
         shell: bash
@@ -76,11 +75,3 @@ jobs:
           echo ""
           echo "✓ All verifications completed successfully!"
 
-      - name: Upload verification logs
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: deployment-verification
-          retention-days: 7
-          path: |
-            provider-config.yaml
