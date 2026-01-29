@@ -59,7 +59,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: ${{values.app_name}}-service
+  name: ${{values.app_name}}
   namespace: ${{values.system.split('/')[1]}}
   labels:
     app: ${{values.app_name}}
@@ -123,6 +123,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: ${{values.app_name}}-service
+                name: ${{values.app_name}}
                 port:
                   number: ${{values.http_port}}

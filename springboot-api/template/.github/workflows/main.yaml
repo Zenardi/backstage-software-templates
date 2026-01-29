@@ -48,6 +48,18 @@ jobs:
           chmod +x /tmp/argocd
           sudo mv /tmp/argocd /usr/local/bin/argocd
 
+      # - name: Install grafanactl
+      #   run: |
+      #     # Download and install grafanactl
+      #     GRAFANACTL_VERSION="0.1.8"
+          
+      #     GRAFANACTL_URL="https://github.com/grafana/grafanactl/releases/download/v0.1.8/grafanactl_Linux_x86_64.tar.gz"
+      #     curl -sL "${GRAFANACTL_URL}" -o grafanactl.tar.gz
+      #     tar -xzf grafanactl.tar.gz grafanactl
+      #     chmod +x grafanactl
+      #     sudo mv grafanactl /usr/local/bin/
+      #     grafanactl --version
+
       - name: argocd login
         shell: bash
         run: |
@@ -95,3 +107,22 @@ jobs:
           echo "⏳ Waiting for rollout..."
           kubectl rollout status deployment/${{values.app_name}} -n ${{values.system.split('/')[1]}} --timeout=90s
 
+      # To Push dashboards to grafana, it needs to be accessible from internet. 
+      # My selfhosted agent cant access http://grafana.local or http://grafana.monitoring.svc.cluster.local:3000 addresses.
+      # - name: Apply Dashboards
+      #   env:
+      #     GRAFANA_SERVER: ${{ secrets.GRAFANA_SERVER }}
+      #     GRAFANA_TOKEN: ${{ secrets.GRAFANA_TOKEN }}
+      #     GRAFANA_ORG_ID: ${{ secrets.GRAFANA_ORG_ID }}
+      #     CONTEXT: default
+      #   run: |
+      #     echo "📊 Applying dashboards..."
+      #     GRAFANA_DASHBOARD_NAME="springboot-api-1"
+
+      #     if grafanactl resources get dashboards --context $CONTEXT | grep "$GRAFANA_DASHBOARD_NAME"; then
+      #       echo "⏩ Dashboard $GRAFANA_DASHBOARD_NAME already exists, skipping..."
+      #     else
+      #       echo "🆕 Pushing dashboard..."
+      #       grafanactl resources push --context $CONTEXT --path k8s/monitoring/grafana
+      #       echo "✅ Dashboards applied"
+      #     fi

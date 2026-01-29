@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/name: ${{values.app_name}}
+    app: ${{values.app_name}}
+  name: ${{values.app_name}}
+  namespace: ${{values.system.split('/')[1]}}
+spec:
+  endpoints:
+  - interval: 30s
+    path: /actuator/prometheus
+    port: http
+  selector:
+    matchLabels:
+      app: ${{values.app_name}}
