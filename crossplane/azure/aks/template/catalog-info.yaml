@@ -1,0 +1,19 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${{ values.cluster_name }}
+  description: "AKS Cluster: ${{ values.cluster_name }}"
+  annotations:
+    backstage.io/source-location: url:${{ values.repoUrl }}
+    backstage.io/techdocs-ref: dir:.
+  tags:
+    - azure
+    - aks
+    - crossplane
+spec:
+  type: service
+  lifecycle: experimental
+  owner: ${{ values.owner }}
+  system: default-system
+  providesApis:
+    - aks-cluster-api-${{ values.cluster_name }}

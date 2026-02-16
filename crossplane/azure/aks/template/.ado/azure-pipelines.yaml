@@ -1,0 +1,26 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: Kubernetes@1
+  displayName: 'Apply ArgoCD Project'
+  inputs:
+    connectionType: 'Kubernetes Service Connection'
+    kubernetesServiceEndpoint: 'kubernetes-default' # Assumes a service connection named 'kubernetes-default'
+    command: 'apply'
+    useConfigurationFile: true
+    configuration: 'argocd/project.yaml'
+    namespace: 'argocd'
+
+- task: Kubernetes@1
+  displayName: 'Apply ArgoCD Application'
+  inputs:
+    connectionType: 'Kubernetes Service Connection'
+    kubernetesServiceEndpoint: 'kubernetes-default' # Assumes a service connection named 'kubernetes-default'
+    command: 'apply'
+    useConfigurationFile: true
+    configuration: 'argocd/application.yaml'
+    namespace: 'argocd'

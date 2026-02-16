@@ -1,0 +1,15 @@
+apiVersion: example.com/v1alpha1
+kind: AKSCluster
+metadata:
+  name: ${{ values.cluster_name }}
+  namespace: default
+spec:
+  compositionSelector:
+    matchLabels:
+      provider: azure
+      cluster-type: low-cost
+  parameters:
+    location: ${{ values.location }}
+    cluster_name: ${{ values.cluster_name }}
+    node_count: ${{ values.node_count }}
+    node_size: ${{ values.node_size }}

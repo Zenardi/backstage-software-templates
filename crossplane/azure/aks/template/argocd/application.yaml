@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ${{ values.cluster_name }}
+  namespace: argocd
+spec:
+  project: ${{ values.cluster_name }}
+  source:
+    repoURL: ${{ values.repoUrl }}
+    path: .
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

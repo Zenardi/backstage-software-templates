@@ -1,0 +1,89 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: aks.low-cost.example.com
+  labels:
+    provider: azure
+    cluster-type: low-cost
+spec:
+  compositeTypeRef:
+    apiVersion: example.com/v1alpha1
+    kind: CompositeAKSCluster
+  resources:
+    - name: resourcegroup
+      base:
+        apiVersion: azure.upbound.io/v1beta1
+        kind: ResourceGroup
+        spec:
+          forProvider:
+            location: ${{ values.location }}
+          providerConfigRef:
+            name: default
+    - name: akscluster
+      base:
+        apiVersion: containerservice.azure.upbound.io/v1beta1
+        kind: KubernetesCluster
+        spec:
+          forProvider:
+            resourceGroupNameSelector:
+              matchControllerRef: true
+            location: ${{ values.location }}
+            dnsPrefix: ${{ values.cluster_name }}
+            defaultNodePool:
+              - name: default
+                nodeCount: ${{ values.node_count }}
+                vmSize: ${{ values.node_size }}
+                enableAutoScaling: false
+                type: VirtualMachineScaleSets
+                scaleDownMode: "Delete"
+                spotMaxPrice: -1 # Use spot instances with on-demand price
+            identity:
+              - type: SystemAssigned
+          providerConfigRef:
+            name: default
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: compositeaksclusters.example.com
+spec:
+  group: example.com
+  names:
+    kind: CompositeAKSCluster
+    plural: compositeaksclusters
+  claimNames:
+    kind: AKSCluster
+    plural: aksclusters
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                parameters:
+                  type: object
+                  properties:
+                    location:
+                      type: string
+                      description: "Azure region"
+                    cluster_name:
+                      type: string
+                      description: "Name of the AKS cluster"
+                    node_count:
+                      type: integer
+                      description: "Number of nodes"
+                    node_size:
+                      type: string
+                      description: "Size of the nodes"
+                  required:
+                    - location
+                    - cluster_name
+                    - node_count
+                    - node_size
+              required:
+                - parameters

@@ -1,0 +1,36 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${{values.component_name}}
+  description: ${{values.description}}
+  annotations:
+    github.com/project-slug: ${{values.destination.owner + "/" + values.destination.repo}}
+    backstage.io/techdocs-ref: dir:.
+
+    # Kubernetes cluster linkage
+    backstage.io/kubernetes-id: ${{values.component_name}}
+    deployment-target-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+
+    # Crossplane linkage
+    crossplane.io/managed-resource-name: ${{values.component_name}}
+    crossplane.io/managed-resource-namespace: ${{values.system.split('/')[1]}}
+    crossplane.io/managed-resource-kind: ClusterProviderConfig
+  labels:
+    crossplane.io/managed-resource-name: ${{values.component_name}}
+    crossplane.io/managed-resource-namespace: ${{values.system.split('/')[1]}}
+    crossplane.io/managed-resource-kind: ClusterProviderConfig
+  tags:
+    - aws
+    - cluster-provider-config
+    - crossplane
+    - infrastructure
+    - iac
+spec:
+  type: service
+  owner: ${{ values.team }}
+  lifecycle: experimental
+  system: ${{values.system}}
+  dependsOn:
+    - ${{values.targetCluster}}
+

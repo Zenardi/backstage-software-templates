@@ -1,0 +1,108 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: low-cost-aks-cluster
+  title: Low-Cost Azure Kubernetes Service (AKS) Cluster
+  description: A template to create a low-cost AKS cluster using Crossplane and Azure.
+  tags:
+    - azure
+    - aks
+    - crossplane
+spec:
+  owner: user:guest
+  type: service
+
+  parameters:
+    - title: Cluster Configuration
+      required:
+        - cluster_name
+        - resource_group_name
+        - location
+      properties:
+        cluster_name:
+          title: Cluster Name
+          type: string
+          description: The name of the AKS cluster.
+        resource_group_name:
+          title: Resource Group Name
+          type: string
+          description: The name of the Azure Resource Group.
+        location:
+          title: Location
+          type: string
+          description: The Azure region where the resources will be created.
+          default: "East US"
+        node_count:
+          title: Node Count
+          type: integer
+          description: The number of nodes in the node pool.
+          default: 1
+        node_size:
+          title: Node Size
+          type: string
+          description: The VM size for the nodes.
+          default: "Standard_B2s" # A low-cost, burstable VM size
+
+    - title: Component Information
+      required:
+        - owner
+      properties:
+        owner:
+          title: Owner
+          type: string
+          description: The owner of the component.
+          ui:field: OwnerPicker
+          ui:options:
+            allowedKinds:
+              - Group
+              - User
+
+    - title: Source Code Repository
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Repository URL
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - dev.azure.com
+
+  steps:
+    - id: template
+      name: Fetch Skeleton + Template
+      action: fetch:template
+      input:
+        url: ./template
+        values:
+          cluster_name: ${{ parameters.cluster_name }}
+          resource_group_name: ${{ parameters.resource_group_name }}
+          location: ${{ parameters.location }}
+          node_count: ${{ parameters.node_count }}
+          node_size: ${{ parameters.node_size }}
+          owner: ${{ parameters.owner }}
+          repoUrl: ${{ parameters.repoUrl }}
+
+    - id: publish
+      name: Publish
+      action: publish:azure
+      input:
+        allowedHosts: ["dev.azure.com"]
+        description: "Repository for ${{ parameters.cluster_name }} AKS cluster"
+        repoUrl: ${{ parameters.repoUrl }}
+
+    - id: register
+      name: Register
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: "/catalog-info.yaml"
+
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps.publish.output.remoteUrl }}
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}

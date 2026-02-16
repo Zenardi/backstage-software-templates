@@ -1,0 +1,11 @@
+apiVersion: aws.m.upbound.io/v1beta1
+kind: ClusterProviderConfig
+metadata:
+  name: default
+spec:
+  credentials:
+    secretRef:
+      key: creds
+      name: provider-creds
+      namespace: upbound-system
+    source: Secret
