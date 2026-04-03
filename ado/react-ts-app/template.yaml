@@ -21,7 +21,6 @@ spec:
         - app_description
         - owner
         - system
-        - image_registry
       properties:
 
         component_id:
@@ -45,12 +44,6 @@ spec:
             - staging
             - prod
 
-        image_registry:
-          title: Image Registry (ContainerRegistry/ImageName, e.g. docker.io/your-app)
-          type: string
-          description: Container image registry URL
-          default: docker.io/zenardi
-
         owner:
           title: Owner
           type: string
@@ -71,6 +64,52 @@ spec:
             catalogFilter:
               - kind: System
                 'spec.domain': spacetech
+
+    - title: Container Registry
+      required:
+        - registry_type
+        - registry_username
+        - registry_password
+      properties:
+        registry_type:
+          title: Registry Type
+          type: string
+          description: Where container images will be pushed
+          enum:
+            - dockerhub
+            - acr
+          enumNames:
+            - Docker Hub
+            - Azure Container Registry (ACR)
+
+        registry_username:
+          title: Registry Username
+          type: string
+          description: Docker Hub username or ACR admin username
+
+        registry_password:
+          title: Registry Password / Access Token
+          type: string
+          description: Docker Hub password/token or ACR admin password (stored as a secret pipeline variable)
+          ui:widget: password
+
+      dependencies:
+        registry_type:
+          oneOf:
+            - properties:
+                registry_type:
+                  enum:
+                    - dockerhub
+            - properties:
+                registry_type:
+                  enum:
+                    - acr
+                registry_host:
+                  title: ACR Registry Host
+                  type: string
+                  description: "e.g. myregistry.azurecr.io"
+              required:
+                - registry_host
 
     - title: Source Code Repository
       required:
@@ -151,7 +190,6 @@ spec:
           app_description: ${{parameters.app_description}}
           app_env: ${{parameters.environment}}
           deploy_replicas: ${{parameters.deploy_replicas}}
-          image_registry: ${{parameters.image_registry}}
           domain_name: ${{parameters.domain_name}}
           hpa_min_replicas: ${{parameters.hpa_min_replicas}}
           hpa_max_replicas: ${{parameters.hpa_max_replicas}}
@@ -166,6 +204,9 @@ spec:
           targetCluster: ${{parameters.targetCluster}}
           owner: ${{parameters.owner}}
           system: ${{parameters.system}}
+          registry_type: ${{parameters.registry_type}}
+          registry_username: ${{parameters.registry_username}}
+          registry_host: ${{parameters.registry_host if parameters.registry_host else ""}}
 
     - id: publish
       name: Publish
@@ -184,6 +225,10 @@ spec:
         repoName: ${{ parameters.component_id }}
         pipelineName: ${{ parameters.component_id }}-cicd
         pipelineYamlPath: /azure-pipelines.yml
+        variables:
+          REGISTRY_PASSWORD:
+            value: ${{ parameters.registry_password }}
+            isSecret: true
 
     - id: register
       name: Register
