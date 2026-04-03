@@ -207,6 +207,7 @@ spec:
             owner: ${{parameters.ado_organization}}
             project: ${{parameters.ado_project}}
             repo: ${{parameters.component_id}}
+          ado_organization: ${{parameters.ado_organization}}
           ado_project: ${{parameters.ado_project}}
           ado_agent_pool: ${{parameters.ado_agent_pool}}
           targetCluster: ${{parameters.targetCluster}}
