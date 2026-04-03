@@ -8,6 +8,9 @@ trigger:
     include:
       - src/**
 
+variables:
+  - group: ${{values.variable_group}}
+
 stages:
   - stage: CI
     displayName: Build and Push Docker Image
@@ -22,15 +25,15 @@ stages:
           - script: |
               set -euo pipefail
 {% if values.registry_type == "dockerhub" %}
-              echo "$REGISTRY_PASSWORD" | docker login -u ${{values.registry_username}} --password-stdin
+              echo "$(DOCKER_HUB_PAT)" | docker login -u "$(DOCKER_HUB_USERNAME)" --password-stdin
               docker build \
-                -t ${{values.registry_username}}/${{values.app_name}}:$(Build.BuildId) \
-                -t ${{values.registry_username}}/${{values.app_name}}:latest \
+                -t $(DOCKER_HUB_USERNAME)/${{values.app_name}}:$(Build.BuildId) \
+                -t $(DOCKER_HUB_USERNAME)/${{values.app_name}}:latest \
                 .
-              docker push ${{values.registry_username}}/${{values.app_name}}:$(Build.BuildId)
-              docker push ${{values.registry_username}}/${{values.app_name}}:latest
+              docker push $(DOCKER_HUB_USERNAME)/${{values.app_name}}:$(Build.BuildId)
+              docker push $(DOCKER_HUB_USERNAME)/${{values.app_name}}:latest
 {% else %}
-              echo "$REGISTRY_PASSWORD" | docker login ${{values.registry_host}} -u ${{values.registry_username}} --password-stdin
+              echo "$(DOCKER_HUB_PAT)" | docker login ${{values.registry_host}} -u "$(DOCKER_HUB_USERNAME)" --password-stdin
               docker build \
                 -t ${{values.registry_host}}/${{values.app_name}}:$(Build.BuildId) \
                 -t ${{values.registry_host}}/${{values.app_name}}:latest \
@@ -39,8 +42,6 @@ stages:
               docker push ${{values.registry_host}}/${{values.app_name}}:latest
 {% endif %}
             displayName: Build and Push Image
-            env:
-              REGISTRY_PASSWORD: $(REGISTRY_PASSWORD)
 
   - stage: CD
     displayName: Deploy to Kubernetes
