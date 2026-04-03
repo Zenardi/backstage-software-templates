@@ -179,6 +179,17 @@ spec:
       input:
         description: "A React (TypeScript) application: ${{ parameters.component_id }}"
         repoUrl: ${{ parameters.repoUrl }}
+        defaultBranch: main
+
+    - id: create-pipeline
+      name: Create and Trigger Azure Pipeline
+      action: azure:pipeline:create-and-run
+      input:
+        organization: ${{ parameters.repoUrl | parseRepoUrl | pick('organization') }}
+        project: ${{ parameters.ado_project }}
+        repoName: ${{ parameters.repoUrl | parseRepoUrl | pick('repo') }}
+        pipelineName: ${{ parameters.component_id }}-cicd
+        pipelineYamlPath: /azure-pipelines.yml
 
     - id: register
       name: Register
@@ -207,4 +218,7 @@ spec:
         icon: scaffolder
       - title: Pipeline
         url: ${{ steps['create-pipeline'].output.pipelineUrl }}
+        icon: scaffolder
+      - title: Pipeline Run
+        url: ${{ steps['create-pipeline'].output.runUrl }}
         icon: scaffolder
