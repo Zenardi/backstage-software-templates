@@ -76,6 +76,7 @@ spec:
       required:
         - repoUrl
         - ado_project
+        - ado_organization
       properties:
         repoUrl:
           title: Repository URL
@@ -84,6 +85,11 @@ spec:
           ui:options:
             allowedHosts:
               - dev.azure.com
+
+        ado_organization:
+          title: Azure DevOps Organization Name
+          type: string
+          description: Your Azure DevOps organization name (e.g. Zenardi — the org part of dev.azure.com/{org})
 
         ado_project:
           title: Azure DevOps Project Name
@@ -142,12 +148,6 @@ spec:
           description: The domain name for the application
           default: local.com
 
-        ado_agent_pool:
-          title: Azure DevOps Agent Pool
-          type: string
-          description: The self-hosted agent pool that has access to the local KIND cluster
-          default: Default
-
 
   steps:
     - id: fetch-base
@@ -168,7 +168,6 @@ spec:
           hpa_avg_memory_utilization: ${{parameters.hpa_avg_memory_utilization}}
           destination: ${{ parameters.repoUrl | parseRepoUrl }}
           ado_project: ${{parameters.ado_project}}
-          ado_agent_pool: ${{parameters.ado_agent_pool}}
           targetCluster: ${{parameters.targetCluster}}
           owner: ${{parameters.owner}}
           system: ${{parameters.system}}
@@ -185,7 +184,7 @@ spec:
       name: Create and Trigger Azure Pipeline
       action: azure:pipeline:create-and-run
       input:
-        organization: ${{ parameters.repoUrl | parseRepoUrl | pick('organization') }}
+        organization: ${{ parameters.ado_organization }}
         project: ${{ parameters.ado_project }}
         repoName: ${{ parameters.repoUrl | parseRepoUrl | pick('repo') }}
         pipelineName: ${{ parameters.component_id }}-cicd
@@ -197,16 +196,6 @@ spec:
       input:
         repoContentsUrl: ${{ steps['publish'].output.repoContentsUrl }}
         catalogInfoPath: "/catalog-info.yaml"
-
-    - id: create-pipeline
-      name: Create and Trigger Azure Pipeline
-      action: azure:pipeline:create-and-run
-      input:
-        organization: ${{ parameters.repoUrl | parseRepoUrl | pick('owner') }}
-        project: ${{ parameters.ado_project }}
-        repoName: ${{ parameters.repoUrl | parseRepoUrl | pick('repo') }}
-        pipelineName: ${{ parameters.component_id }}-cicd
-        pipelineYamlPath: /azure-pipelines.yml
 
   output:
     links:
