@@ -19,6 +19,7 @@ spec:
         - component_id
         - environment
         - app_description
+        - owner
         - system
         - image_registry
       properties:
@@ -50,6 +51,16 @@ spec:
           description: Container image registry URL
           default: docker.io/zenardi
 
+        owner:
+          title: Owner
+          type: string
+          description: The owner of the component.
+          ui:field: OwnerPicker
+          ui:options:
+            allowedKinds:
+              - Group
+              - User
+
         system:
           title: System or Project Responsible
           type: string
@@ -60,20 +71,6 @@ spec:
             catalogFilter:
               - kind: System
                 'spec.domain': spacetech
-
-    - title: Component Information
-      required:
-        - owner
-      properties:
-        owner:
-          title: Owner
-          type: string
-          description: The owner of the component.
-          ui:field: OwnerPicker
-          ui:options:
-            allowedKinds:
-              - Group
-              - User
 
     - title: Source Code Repository
       required:
