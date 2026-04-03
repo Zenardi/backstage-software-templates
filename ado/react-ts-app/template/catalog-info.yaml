@@ -1,0 +1,35 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${{values.app_name}}
+  description: '${{values.app_description}}'
+  annotations:
+    dev.azure.com/project-repo: ${{values.destination.owner + "/" + values.ado_project + "/" + values.destination.repo}}
+    backstage.io/techdocs-ref: dir:.
+    grafana/dashboard-selector: "title == '${{values.app_name}}'"
+    grafana/alert-label-selector: "app=${{values.app_name}}"
+    
+    # Kubernetes cluster linkage
+    backstage.io/kubernetes-id: ${{values.app_name}}
+    deployment-target-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+
+  links:
+    - url: http://${{values.domain_name}}
+      title: ${{values.app_name}} Link
+      icon: dashboard
+      type: admin-dashboard
+    - url: https://argocd.local/applications/argocd/${{values.app_name}}?view=tree&resource=
+      title: ArgoCD
+      icon: dashboard
+      type: admin-dashboard
+  tags:
+    - react
+    - typescript
+spec:
+  type: website
+  owner: ${{values.owner}}
+  lifecycle: experimental
+  system: ${{values.system}}
+  dependsOn:
+    - ${{values.targetCluster}}

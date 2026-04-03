@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ${{values.app_name}}
+  namespace: argocd
+spec:
+  project: ${{values.system.split('/')[1]}}
+  source:
+    repoURL: https://dev.azure.com/${{values.destination.owner}}/${{values.ado_project}}/_git/${{values.destination.repo}}
+    targetRevision: main
+    path: k8s
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ${{values.system.split('/')[1]}}
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true

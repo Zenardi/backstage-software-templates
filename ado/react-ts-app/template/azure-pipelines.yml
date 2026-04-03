@@ -1,0 +1,98 @@
+name: ${{values.app_name}}-cicd
+
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - src/**
+
+stages:
+  - stage: CI
+    displayName: Build and Push Docker Image
+    jobs:
+      - job: Build
+        displayName: Docker Build & Push
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - task: Docker@2
+            displayName: Login to Docker Hub
+            inputs:
+              command: login
+              containerRegistry: dockerhub  # Azure DevOps service connection name
+
+          - task: Docker@2
+            displayName: Build and Push
+            inputs:
+              command: buildAndPush
+              repository: $(DOCKERHUB_USERNAME)/${{values.app_name}}
+              tags: latest
+
+  - stage: CD
+    displayName: Deploy to Kubernetes
+    dependsOn: CI
+    jobs:
+      - job: Deploy
+        displayName: Deploy to Local KIND Cluster
+        pool:
+          name: Default  # Self-hosted agent pool with access to the local KIND cluster
+        steps:
+          - checkout: self
+
+          - script: |
+              curl -sSL -o /tmp/kubectl https://dl.k8s.io/release/v1.28.0/bin/linux/amd64/kubectl
+              chmod +x /tmp/kubectl
+              sudo mv /tmp/kubectl /usr/local/bin/kubectl
+            displayName: Install kubectl
+
+          - script: |
+              curl -sSL -o /tmp/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+              chmod +x /tmp/argocd
+              sudo mv /tmp/argocd /usr/local/bin/argocd
+            displayName: Install ArgoCD CLI
+
+          - script: |
+              argocd login argocd-server.argocd \
+                --plaintext \
+                --grpc-web \
+                --username admin \
+                --password $(ARGOCD_PASSWORD)
+            displayName: ArgoCD Login
+
+          - script: |
+              kubectl apply -f argocd/project.yaml
+            displayName: Ensure ArgoCD Project
+
+          - script: |
+              kubectl apply -f argocd/application.yaml
+            displayName: Ensure ArgoCD Application
+
+          - script: |
+              NAMESPACE="${{values.system.split('/')[1]}}"
+              echo "Creating namespace: $NAMESPACE"
+              kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
+
+              for i in $(seq 1 30); do
+                if kubectl get namespace "$NAMESPACE" > /dev/null 2>&1; then
+                  echo "✓ Namespace $NAMESPACE is ready"
+                  exit 0
+                fi
+                echo "Waiting for namespace to be created... ($i/30)"
+                sleep 1
+              done
+
+              echo "✗ Namespace creation timeout after 30 seconds"
+              exit 1
+            displayName: Ensure Namespace Exists
+
+          - script: |
+              echo "🚀 Applying manifests from k8s/ folder..."
+              kubectl apply -f k8s/
+
+              echo "⏳ Waiting for rollout..."
+              kubectl rollout status deployment/${{values.app_name}} \
+                -n ${{values.system.split('/')[1]}} \
+                --timeout=90s
+            displayName: Deploy to Local Cluster

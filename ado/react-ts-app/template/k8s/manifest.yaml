@@ -1,0 +1,139 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${{values.app_name}}
+  namespace: ${{values.system.split('/')[1]}}
+  labels:
+    app: ${{values.app_name}}
+    environment: ${{values.app_env}}
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.app_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.app_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+
+spec:
+  replicas: ${{values.deploy_replicas}}
+  selector:
+    matchLabels:
+      app: ${{values.app_name}}
+  template:
+    metadata:
+      labels:
+        app: ${{values.app_name}}
+        environment: ${{values.app_env}}
+        backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+        backstage.io/kubernetes-id: ${{values.app_name}}
+        backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+    spec:
+      containers:
+        - name: ${{values.app_name}}
+          image: ${{values.image_registry}}/${{values.app_name}}:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${{values.app_name}}-service
+  namespace: ${{values.system.split('/')[1]}}
+  labels:
+    environment: ${{values.app_env}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+spec:
+  selector:
+    app: ${{values.app_name}}
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80
+    - name: metrics
+      protocol: TCP
+      port: 3000
+      targetPort: 3000
+  type: ClusterIP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ${{values.app_name}}-hpa
+  namespace: ${{values.system.split('/')[1]}}
+  labels:
+    environment: ${{values.app_env}}
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.app_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+  annotations:
+    backstage.io/kubernetes-cluster: ${{values.targetCluster.split('/')[1]}}
+    backstage.io/kubernetes-id: ${{values.app_name}}
+    backstage.io/kubernetes-namespace: ${{values.system.split('/')[1]}}
+
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ${{values.app_name}}
+  minReplicas: ${{values.hpa_min_replicas}}
+  maxReplicas: ${{values.hpa_max_replicas}}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: ${{values.hpa_avg_cpu_utilization}}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: ${{values.hpa_avg_memory_utilization}}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ${{values.app_name}}-ingress
+  namespace: ${{values.system.split('/')[1]}}
+  labels:
+    environment: ${{values.app_env}}
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+    backstage.io/kubernetes-cluster: ${{ values.targetCluster }}
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: ${{values.domain_name}}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ${{values.app_name}}-service
+                port:
+                  number: 80
