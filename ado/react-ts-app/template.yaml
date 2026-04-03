@@ -27,7 +27,7 @@ spec:
         component_id:
           title: Component name
           type: string
-          description: Provide App name (this will also be used as the repository name)
+          description: App name — also used as the repository name in Azure DevOps
           pattern: '^([a-zA-Z][a-zA-Z0-9]*)(-[a-zA-Z0-9]+)*$'
 
         app_description:
@@ -74,16 +74,18 @@ spec:
 
     - title: Source Code Repository
       required:
-        - repoUrl
+        - ado_organization
+        - ado_project
       properties:
-        repoUrl:
-          title: Repository Location
+        ado_organization:
+          title: Azure DevOps Organization
           type: string
-          description: "Select the Azure DevOps organization and project. The repository will be created with the component name."
-          ui:field: RepoUrlPicker
-          ui:options:
-            allowedHosts:
-              - dev.azure.com
+          description: The Azure DevOps organization name (e.g. Zenardi)
+
+        ado_project:
+          title: Azure DevOps Project
+          type: string
+          description: The Azure DevOps project where the repository will be created
 
     - title: Kubernetes Deployment Specs
       required:
@@ -155,8 +157,12 @@ spec:
           hpa_max_replicas: ${{parameters.hpa_max_replicas}}
           hpa_avg_cpu_utilization: ${{parameters.hpa_avg_cpu_utilization}}
           hpa_avg_memory_utilization: ${{parameters.hpa_avg_memory_utilization}}
-          destination: ${{ parameters.repoUrl | parseRepoUrl }}
-          ado_project: ${{ parameters.repoUrl | parseRepoUrl | pick('project') }}
+          destination:
+            host: dev.azure.com
+            owner: ${{parameters.ado_organization}}
+            project: ${{parameters.ado_project}}
+            repo: ${{parameters.component_id}}
+          ado_project: ${{parameters.ado_project}}
           targetCluster: ${{parameters.targetCluster}}
           owner: ${{parameters.owner}}
           system: ${{parameters.system}}
@@ -166,16 +172,15 @@ spec:
       action: publish:azure
       input:
         description: "A React (TypeScript) application: ${{ parameters.component_id }}"
-        repoUrl: ${{ parameters.repoUrl }}
+        repoUrl: "dev.azure.com?owner=${{ parameters.ado_organization }}&repo=${{ parameters.component_id }}&project=${{ parameters.ado_project }}"
         defaultBranch: main
-        repoName: ${{ parameters.component_id }}
 
     - id: create-pipeline
       name: Create and Trigger Azure Pipeline
       action: azure:pipeline:create-and-run
       input:
-        organization: ${{ parameters.repoUrl | parseRepoUrl | pick('owner') }}
-        project: ${{ parameters.repoUrl | parseRepoUrl | pick('project') }}
+        organization: ${{ parameters.ado_organization }}
+        project: ${{ parameters.ado_project }}
         repoName: ${{ parameters.component_id }}
         pipelineName: ${{ parameters.component_id }}-cicd
         pipelineYamlPath: /azure-pipelines.yml
