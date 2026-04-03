@@ -83,29 +83,11 @@ stages:
               AZURE_DEVOPS_PAT: $(AZURE_DEVOPS_PAT)
 
           - script: |
-              PROJECT="${{values.system.split('/')[1]}}"
-              /tmp/argocd proj create "$PROJECT" \
-                --description "$PROJECT Project" \
-                --dest "https://kubernetes.default.svc,*" \
-                --src "*" \
-                --allow-cluster-resource "/Namespace" \
-                --upsert
+              /tmp/kubectl apply -f argocd/project.yaml
             displayName: Ensure ArgoCD Project
 
           - script: |
-              NAMESPACE="${{values.system.split('/')[1]}}"
-              /tmp/argocd app create "${{values.app_name}}" \
-                --repo "https://dev.azure.com/${{values.destination.owner}}/${{values.ado_project}}/_git/${{values.destination.repo}}" \
-                --path k8s \
-                --dest-server "https://kubernetes.default.svc" \
-                --dest-namespace "$NAMESPACE" \
-                --project "$NAMESPACE" \
-                --revision main \
-                --sync-policy automated \
-                --self-heal \
-                --auto-prune \
-                --sync-option CreateNamespace=true \
-                --upsert
+              /tmp/kubectl apply -f argocd/application.yaml
             displayName: Ensure ArgoCD Application
 
           - script: |
