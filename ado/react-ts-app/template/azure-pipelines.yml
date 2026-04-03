@@ -15,7 +15,7 @@ stages:
       - job: Build
         displayName: Docker Build & Push
         pool:
-          vmImage: ubuntu-latest
+          name: ${{values.ado_agent_pool}}
         steps:
           - checkout: self
 
