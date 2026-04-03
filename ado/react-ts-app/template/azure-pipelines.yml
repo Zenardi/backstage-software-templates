@@ -15,7 +15,7 @@ stages:
       - job: Build
         displayName: Docker Build & Push
         pool:
-          name: ${{values.agent_pool}}
+          vmImage: ubuntu-latest
         steps:
           - task: Docker@2
             displayName: Login to Docker Hub
@@ -37,7 +37,7 @@ stages:
       - job: Deploy
         displayName: Deploy to Local KIND Cluster
         pool:
-          name: ${{values.agent_pool}}
+          name: Default  # Self-hosted agent pool with access to the local KIND cluster
         steps:
           - checkout: self
 
