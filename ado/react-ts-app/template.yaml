@@ -27,7 +27,7 @@ spec:
         component_id:
           title: Component name
           type: string
-          description: Provide App name
+          description: Provide App name (this will also be used as the repository name)
           pattern: '^([a-zA-Z][a-zA-Z0-9]*)(-[a-zA-Z0-9]+)*$'
 
         app_description:
@@ -75,26 +75,15 @@ spec:
     - title: Source Code Repository
       required:
         - repoUrl
-        - ado_project
-        - ado_organization
       properties:
         repoUrl:
-          title: Repository URL
+          title: Repository Location
           type: string
+          description: "Select the Azure DevOps organization and project. The repository will be created with the component name."
           ui:field: RepoUrlPicker
           ui:options:
             allowedHosts:
               - dev.azure.com
-
-        ado_organization:
-          title: Azure DevOps Organization Name
-          type: string
-          description: Your Azure DevOps organization name (e.g. Zenardi — the org part of dev.azure.com/{org})
-
-        ado_project:
-          title: Azure DevOps Project Name
-          type: string
-          description: The Azure DevOps project where the repository will be created (used for pipeline and ArgoCD integration)
 
     - title: Kubernetes Deployment Specs
       required:
@@ -167,7 +156,7 @@ spec:
           hpa_avg_cpu_utilization: ${{parameters.hpa_avg_cpu_utilization}}
           hpa_avg_memory_utilization: ${{parameters.hpa_avg_memory_utilization}}
           destination: ${{ parameters.repoUrl | parseRepoUrl }}
-          ado_project: ${{parameters.ado_project}}
+          ado_project: ${{ parameters.repoUrl | parseRepoUrl | pick('project') }}
           targetCluster: ${{parameters.targetCluster}}
           owner: ${{parameters.owner}}
           system: ${{parameters.system}}
@@ -179,14 +168,15 @@ spec:
         description: "A React (TypeScript) application: ${{ parameters.component_id }}"
         repoUrl: ${{ parameters.repoUrl }}
         defaultBranch: main
+        repoName: ${{ parameters.component_id }}
 
     - id: create-pipeline
       name: Create and Trigger Azure Pipeline
       action: azure:pipeline:create-and-run
       input:
-        organization: ${{ parameters.ado_organization }}
-        project: ${{ parameters.ado_project }}
-        repoName: ${{ parameters.repoUrl | parseRepoUrl | pick('repo') }}
+        organization: ${{ parameters.repoUrl | parseRepoUrl | pick('owner') }}
+        project: ${{ parameters.repoUrl | parseRepoUrl | pick('project') }}
+        repoName: ${{ parameters.component_id }}
         pipelineName: ${{ parameters.component_id }}-cicd
         pipelineYamlPath: /azure-pipelines.yml
 
