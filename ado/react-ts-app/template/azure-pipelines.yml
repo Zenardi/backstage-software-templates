@@ -25,15 +25,15 @@ stages:
           - script: |
               set -euo pipefail
 {% if values.registry_type == "dockerhub" %}
-              echo "$(DOCKER_HUB_PAT)" | docker login -u "$(DOCKER_HUB_USERNAME)" --password-stdin
+              echo "$DOCKER_HUB_PAT" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
               docker build \
-                -t $(DOCKER_HUB_USERNAME)/${{values.app_name}}:$(Build.BuildId) \
-                -t $(DOCKER_HUB_USERNAME)/${{values.app_name}}:latest \
+                -t $DOCKER_HUB_USERNAME/${{values.app_name}}:$(Build.BuildId) \
+                -t $DOCKER_HUB_USERNAME/${{values.app_name}}:latest \
                 .
-              docker push $(DOCKER_HUB_USERNAME)/${{values.app_name}}:$(Build.BuildId)
-              docker push $(DOCKER_HUB_USERNAME)/${{values.app_name}}:latest
+              docker push $DOCKER_HUB_USERNAME/${{values.app_name}}:$(Build.BuildId)
+              docker push $DOCKER_HUB_USERNAME/${{values.app_name}}:latest
 {% else %}
-              echo "$(DOCKER_HUB_PAT)" | docker login ${{values.registry_host}} -u "$(DOCKER_HUB_USERNAME)" --password-stdin
+              echo "$DOCKER_HUB_PAT" | docker login ${{values.registry_host}} -u "$DOCKER_HUB_USERNAME" --password-stdin
               docker build \
                 -t ${{values.registry_host}}/${{values.app_name}}:$(Build.BuildId) \
                 -t ${{values.registry_host}}/${{values.app_name}}:latest \
