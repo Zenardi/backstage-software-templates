@@ -20,8 +20,9 @@ stages:
           - checkout: self
 
           - script: |
+              set -euo pipefail
 {% if values.registry_type == "dockerhub" %}
-              echo "$(REGISTRY_PASSWORD)" | docker login -u ${{values.registry_username}} --password-stdin
+              echo "$REGISTRY_PASSWORD" | docker login -u ${{values.registry_username}} --password-stdin
               docker build \
                 -t ${{values.registry_username}}/${{values.app_name}}:$(Build.BuildId) \
                 -t ${{values.registry_username}}/${{values.app_name}}:latest \
@@ -29,7 +30,7 @@ stages:
               docker push ${{values.registry_username}}/${{values.app_name}}:$(Build.BuildId)
               docker push ${{values.registry_username}}/${{values.app_name}}:latest
 {% else %}
-              echo "$(REGISTRY_PASSWORD)" | docker login ${{values.registry_host}} -u ${{values.registry_username}} --password-stdin
+              echo "$REGISTRY_PASSWORD" | docker login ${{values.registry_host}} -u ${{values.registry_username}} --password-stdin
               docker build \
                 -t ${{values.registry_host}}/${{values.app_name}}:$(Build.BuildId) \
                 -t ${{values.registry_host}}/${{values.app_name}}:latest \
