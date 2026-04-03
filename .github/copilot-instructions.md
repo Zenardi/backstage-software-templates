@@ -141,8 +141,16 @@ repoURL: https://dev.azure.com/${{values.destination.owner}}/${{values.ado_proje
 
 **Azure Pipelines structure** (`azure-pipelines.yml`):
 - Stage `CI`: runs on `ubuntu-latest`, uses `Docker@2` task with a `dockerhub` service connection
-- Stage `CD`: runs on `pool: name: Default` (self-hosted, must have access to local KIND cluster), uses the same kubectl + argocd login + deploy pattern as GitHub CD jobs
+- Stage `CD`: runs on `pool: name: ${{values.ado_agent_pool}}` (self-hosted, must have access to local KIND cluster), uses the same kubectl + argocd login + deploy pattern as GitHub CD jobs
 - Pipeline variables: `$(DOCKERHUB_USERNAME)`, `$(DOCKERHUB_TOKEN)`, `$(ARGOCD_PASSWORD)` — set these in ADO pipeline settings or a Variable Group
+
+**Custom scaffolder action** (`azure:pipeline:create-and-run`):
+- Defined in `platform-cli/backstage-v1.49.3/packages/backend/src/extensions/azurePipelineAction.ts`
+- Registered in `packages/backend/src/index.ts` as a default export module
+- Uses `DefaultAzureDevOpsCredentialsProvider.fromIntegrations()` to read the PAT from `integrations.azure[].token`
+- Calls ADO REST API: `GET /git/repositories` → `POST /pipelines` → `POST /pipelines/{id}/runs`
+- Outputs: `pipelineId`, `pipelineUrl`, `runId`, `runUrl`
+- Schema uses per-field function pattern: `fieldName: (z: any) => z.string()` (required by Backstage v1.49.x)
 
 ## Build Commands (within generated projects)
 

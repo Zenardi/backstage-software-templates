@@ -37,7 +37,7 @@ stages:
       - job: Deploy
         displayName: Deploy to Local KIND Cluster
         pool:
-          name: Default  # Self-hosted agent pool with access to the local KIND cluster
+          name: ${{values.ado_agent_pool}}
         steps:
           - checkout: self
 
