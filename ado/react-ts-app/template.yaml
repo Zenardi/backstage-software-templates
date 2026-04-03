@@ -91,7 +91,7 @@ spec:
           title: Registry Password / Access Token
           type: string
           description: Docker Hub password/token or ACR admin password (stored as a secret pipeline variable)
-          ui:widget: password
+          ui:field: Secret
 
       dependencies:
         registry_type:
