@@ -85,7 +85,8 @@ spec:
               - github.com
 
     - title: Kubernetes Deployment Specs
-      required: 
+      required:
+        - targetCluster
         - deploy_replicas
         - domain_name
         - hpa_min_replicas
