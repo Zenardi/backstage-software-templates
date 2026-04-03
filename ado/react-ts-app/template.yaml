@@ -232,7 +232,8 @@ spec:
         project: ${{ parameters.ado_project }}
         repoName: ${{ parameters.component_id }}
         pipelineName: ${{ parameters.component_id }}-cicd
-        pipelineYamlPath: /azure-pipelines.yml
+        agentPoolName: ${{ parameters.ado_agent_pool }}
+        pipelineYamlPath: azure-pipelines.yml
         variables:
           REGISTRY_PASSWORD:
             value: ${{ parameters.registry_password }}
