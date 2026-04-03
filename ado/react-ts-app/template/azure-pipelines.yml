@@ -17,18 +17,29 @@ stages:
         pool:
           vmImage: ubuntu-latest
         steps:
-          - task: Docker@2
-            displayName: Login to Docker Hub
-            inputs:
-              command: login
-              containerRegistry: dockerhub  # Azure DevOps service connection name
+          - checkout: self
 
-          - task: Docker@2
-            displayName: Build and Push
-            inputs:
-              command: buildAndPush
-              repository: $(DOCKERHUB_USERNAME)/${{values.app_name}}
-              tags: latest
+          - script: |
+{% if values.registry_type == "dockerhub" %}
+              echo "$(REGISTRY_PASSWORD)" | docker login -u ${{values.registry_username}} --password-stdin
+              docker build \
+                -t ${{values.registry_username}}/${{values.app_name}}:$(Build.BuildId) \
+                -t ${{values.registry_username}}/${{values.app_name}}:latest \
+                .
+              docker push ${{values.registry_username}}/${{values.app_name}}:$(Build.BuildId)
+              docker push ${{values.registry_username}}/${{values.app_name}}:latest
+{% else %}
+              echo "$(REGISTRY_PASSWORD)" | docker login ${{values.registry_host}} -u ${{values.registry_username}} --password-stdin
+              docker build \
+                -t ${{values.registry_host}}/${{values.app_name}}:$(Build.BuildId) \
+                -t ${{values.registry_host}}/${{values.app_name}}:latest \
+                .
+              docker push ${{values.registry_host}}/${{values.app_name}}:$(Build.BuildId)
+              docker push ${{values.registry_host}}/${{values.app_name}}:latest
+{% endif %}
+            displayName: Build and Push Image
+            env:
+              REGISTRY_PASSWORD: $(REGISTRY_PASSWORD)
 
   - stage: CD
     displayName: Deploy to Kubernetes
@@ -76,22 +87,22 @@ stages:
 
               for i in $(seq 1 30); do
                 if kubectl get namespace "$NAMESPACE" > /dev/null 2>&1; then
-                  echo "✓ Namespace $NAMESPACE is ready"
+                  echo "Namespace $NAMESPACE is ready"
                   exit 0
                 fi
                 echo "Waiting for namespace to be created... ($i/30)"
                 sleep 1
               done
 
-              echo "✗ Namespace creation timeout after 30 seconds"
+              echo "Namespace creation timeout after 30 seconds"
               exit 1
             displayName: Ensure Namespace Exists
 
           - script: |
-              echo "🚀 Applying manifests from k8s/ folder..."
+              echo "Applying manifests from k8s/ folder..."
               kubectl apply -f k8s/
 
-              echo "⏳ Waiting for rollout..."
+              echo "Waiting for rollout..."
               kubectl rollout status deployment/${{values.app_name}} \
                 -n ${{values.system.split('/')[1]}} \
                 --timeout=90s
