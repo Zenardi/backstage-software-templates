@@ -115,6 +115,7 @@ spec:
       required:
         - ado_organization
         - ado_project
+        - ado_agent_pool
       properties:
         ado_organization:
           title: Azure DevOps Organization
@@ -125,6 +126,12 @@ spec:
           title: Azure DevOps Project
           type: string
           description: The Azure DevOps project where the repository will be created
+
+        ado_agent_pool:
+          title: Agent Pool Name
+          type: string
+          description: The Azure DevOps agent pool used for the CD stage (must run inside the KIND cluster)
+          default: kind-backstage
 
     - title: Kubernetes Deployment Specs
       required:
@@ -201,6 +208,7 @@ spec:
             project: ${{parameters.ado_project}}
             repo: ${{parameters.component_id}}
           ado_project: ${{parameters.ado_project}}
+          ado_agent_pool: ${{parameters.ado_agent_pool}}
           targetCluster: ${{parameters.targetCluster}}
           owner: ${{parameters.owner}}
           system: ${{parameters.system}}
