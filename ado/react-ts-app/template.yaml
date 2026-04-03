@@ -172,7 +172,7 @@ spec:
       action: publish:azure
       input:
         description: "A React (TypeScript) application: ${{ parameters.component_id }}"
-        repoUrl: "dev.azure.com?owner=${{ parameters.ado_organization }}&repo=${{ parameters.component_id }}&project=${{ parameters.ado_project }}"
+        repoUrl: "dev.azure.com?organization=${{ parameters.ado_organization }}&owner=${{ parameters.ado_organization }}&repo=${{ parameters.component_id }}&project=${{ parameters.ado_project }}"
         defaultBranch: main
 
     - id: create-pipeline
