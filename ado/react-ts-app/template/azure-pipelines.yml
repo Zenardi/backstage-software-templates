@@ -15,9 +15,31 @@ stages:
       - job: Build
         displayName: Docker Build & Push
         pool:
+{% if values.build_agent == "microsoft-hosted" %}
+          vmImage: ubuntu-latest
+{% else %}
           name: ${{values.ado_agent_pool}}
+{% endif %}
         steps:
           - checkout: self
+
+{% if values.build_agent == "self-hosted" %}
+          - script: |
+              if command -v docker &> /dev/null; then
+                echo "Docker available: $(docker --version)"
+              else
+                echo "Docker not found. Attempting installation via get.docker.com..."
+                curl -fsSL https://get.docker.com | sudo sh
+                if ! command -v docker &> /dev/null; then
+                  echo "##[error] Docker installation failed. Either install Docker on your agent"
+                  echo "##[error] or change the Build Agent to 'microsoft-hosted' in the template."
+                  exit 1
+                fi
+                echo "Docker installed: $(docker --version)"
+                sudo usermod -aG docker "$(whoami)" || true
+              fi
+            displayName: Ensure Docker is Installed
+{% endif %}
 
           - script: |
 {% if values.registry_type == "dockerhub" %}
