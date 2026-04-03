@@ -73,16 +73,6 @@ stages:
             displayName: ArgoCD Login
 
           - script: |
-              REPO_URL="https://dev.azure.com/${{values.destination.owner}}/${{values.ado_project}}/_git/${{values.destination.repo}}"
-              /tmp/argocd repo add "$REPO_URL" \
-                --username "${{values.ado_organization}}" \
-                --password "$AZURE_DEVOPS_PAT" \
-                --upsert
-            displayName: Register Azure DevOps Repo in ArgoCD
-            env:
-              AZURE_DEVOPS_PAT: $(AZURE_DEVOPS_PAT)
-
-          - script: |
               /tmp/kubectl apply -f argocd/project.yaml
             displayName: Ensure ArgoCD Project
 
