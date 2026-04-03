@@ -116,7 +116,6 @@ spec:
         - ado_organization
         - ado_project
         - ado_agent_pool
-        - build_agent
       properties:
         ado_organization:
           title: Azure DevOps Organization
@@ -133,18 +132,6 @@ spec:
           type: string
           description: The Azure DevOps self-hosted agent pool used for the CD stage (must run inside the KIND cluster)
           default: kind-backstage
-
-        build_agent:
-          title: Build Agent
-          type: string
-          description: "Where to run the Docker build/push (CI stage). Use 'microsoft-hosted' if your self-hosted agent pod does not have a Docker daemon."
-          default: microsoft-hosted
-          enum:
-            - microsoft-hosted
-            - self-hosted
-          enumNames:
-            - "Microsoft-hosted (ubuntu-latest) — Docker pre-installed, recommended"
-            - "Self-hosted — uses your agent pool (requires Docker daemon or will attempt install)"
 
     - title: Kubernetes Deployment Specs
       required:
