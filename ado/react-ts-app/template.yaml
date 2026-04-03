@@ -68,8 +68,7 @@ spec:
     - title: Container Registry
       required:
         - registry_type
-        - registry_username
-        - registry_password
+        - variable_group
       properties:
         registry_type:
           title: Registry Type
@@ -82,16 +81,11 @@ spec:
             - Docker Hub
             - Azure Container Registry (ACR)
 
-        registry_username:
-          title: Registry Username
+        variable_group:
+          title: Variable Group Name
           type: string
-          description: Docker Hub username or ACR admin username
-
-        registry_password:
-          title: Registry Password / Access Token
-          type: string
-          description: Docker Hub password/token or ACR admin password (stored as a secret pipeline variable)
-          ui:field: Secret
+          description: "ADO variable group containing DOCKER_HUB_USERNAME and DOCKER_HUB_PAT (or ACR credentials). Create it in Pipelines → Library before running this template."
+          default: docker-hub-creds
 
       dependencies:
         registry_type:
@@ -214,7 +208,7 @@ spec:
           owner: ${{parameters.owner}}
           system: ${{parameters.system}}
           registry_type: ${{parameters.registry_type}}
-          registry_username: ${{parameters.registry_username}}
+          variable_group: ${{parameters.variable_group}}
           registry_host: ${{parameters.registry_host if parameters.registry_host else ""}}
 
     - id: publish
@@ -235,10 +229,6 @@ spec:
         pipelineName: ${{ parameters.component_id }}-cicd
         agentPoolName: ${{ parameters.ado_agent_pool }}
         pipelineYamlPath: azure-pipelines.yml
-        variables:
-          REGISTRY_PASSWORD:
-            value: ${{ parameters.registry_password }}
-            isSecret: true
 
     - id: register
       name: Register
