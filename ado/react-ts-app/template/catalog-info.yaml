@@ -4,7 +4,10 @@ metadata:
   name: ${{values.app_name}}
   description: '${{values.app_description}}'
   annotations:
+    # Azure DevOps plugin annotations
+    dev.azure.com/host-org: dev.azure.com/${{values.ado_organization}}
     dev.azure.com/project-repo: ${{values.ado_project + "/" + values.destination.repo}}
+    dev.azure.com/build-definition: ${{values.app_name}}-cicd
     backstage.io/techdocs-ref: dir:.
     grafana/dashboard-selector: "title == '${{values.app_name}}'"
     grafana/alert-label-selector: "app=${{values.app_name}}"
