@@ -90,12 +90,6 @@ spec:
           type: string
           description: The Azure DevOps project where the repository will be created (used for pipeline and ArgoCD integration)
 
-        agent_pool:
-          title: Azure DevOps Agent Pool
-          type: string
-          description: Name of the self-hosted agent pool running in your local KIND cluster. Both CI and CD stages will run on this pool.
-          default: Default
-
     - title: Kubernetes Deployment Specs
       required:
         - targetCluster
@@ -168,7 +162,6 @@ spec:
           hpa_avg_memory_utilization: ${{parameters.hpa_avg_memory_utilization}}
           destination: ${{ parameters.repoUrl | parseRepoUrl }}
           ado_project: ${{parameters.ado_project}}
-          agent_pool: ${{parameters.agent_pool}}
           targetCluster: ${{parameters.targetCluster}}
           owner: ${{parameters.owner}}
           system: ${{parameters.system}}
@@ -179,18 +172,6 @@ spec:
       input:
         description: "A React (TypeScript) application: ${{ parameters.component_id }}"
         repoUrl: ${{ parameters.repoUrl }}
-        defaultBranch: main
-
-    - id: create-pipeline
-      name: Create Azure DevOps Pipeline
-      action: azure:pipeline:create
-      input:
-        organization: ${{ (parameters.repoUrl | parseRepoUrl).organization }}
-        project: ${{ parameters.ado_project }}
-        repo: ${{ (parameters.repoUrl | parseRepoUrl).repo }}
-        pipelineName: ${{ parameters.component_id }}-cicd
-        yamlPath: /azure-pipelines.yml
-        defaultBranch: main
 
     - id: register
       name: Register
@@ -206,7 +187,4 @@ spec:
         entityRef: ${{ steps.register.output.entityRef }}
       - title: Repository
         url: ${{ steps['publish'].output.remoteUrl }}
-        icon: scaffolder
-      - title: Pipeline
-        url: ${{ steps['create-pipeline'].output.pipelineUrl }}
         icon: scaffolder
