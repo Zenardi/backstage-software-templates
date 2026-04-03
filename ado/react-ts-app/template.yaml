@@ -19,7 +19,6 @@ spec:
         - component_id
         - environment
         - app_description
-        - owner
         - system
         - image_registry
       properties:
