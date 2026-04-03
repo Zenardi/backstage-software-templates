@@ -57,17 +57,15 @@ stages:
           - script: |
               curl -sSL -o /tmp/kubectl https://dl.k8s.io/release/v1.28.0/bin/linux/amd64/kubectl
               chmod +x /tmp/kubectl
-              sudo mv /tmp/kubectl /usr/local/bin/kubectl
             displayName: Install kubectl
 
           - script: |
               curl -sSL -o /tmp/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
               chmod +x /tmp/argocd
-              sudo mv /tmp/argocd /usr/local/bin/argocd
             displayName: Install ArgoCD CLI
 
           - script: |
-              argocd login argocd-server.argocd \
+              /tmp/argocd login argocd-server.argocd \
                 --plaintext \
                 --grpc-web \
                 --username admin \
@@ -75,20 +73,20 @@ stages:
             displayName: ArgoCD Login
 
           - script: |
-              kubectl apply -f argocd/project.yaml
+              /tmp/kubectl apply -f argocd/project.yaml
             displayName: Ensure ArgoCD Project
 
           - script: |
-              kubectl apply -f argocd/application.yaml
+              /tmp/kubectl apply -f argocd/application.yaml
             displayName: Ensure ArgoCD Application
 
           - script: |
               NAMESPACE="${{values.system.split('/')[1]}}"
               echo "Creating namespace: $NAMESPACE"
-              kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
+              /tmp/kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | /tmp/kubectl apply -f -
 
               for i in $(seq 1 30); do
-                if kubectl get namespace "$NAMESPACE" > /dev/null 2>&1; then
+                if /tmp/kubectl get namespace "$NAMESPACE" > /dev/null 2>&1; then
                   echo "Namespace $NAMESPACE is ready"
                   exit 0
                 fi
@@ -102,10 +100,10 @@ stages:
 
           - script: |
               echo "Applying manifests from k8s/ folder..."
-              kubectl apply -f k8s/
+              /tmp/kubectl apply -f k8s/
 
               echo "Waiting for rollout..."
-              kubectl rollout status deployment/${{values.app_name}} \
+              /tmp/kubectl rollout status deployment/${{values.app_name}} \
                 -n ${{values.system.split('/')[1]}} \
                 --timeout=90s
             displayName: Deploy to Local Cluster
