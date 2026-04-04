@@ -94,6 +94,12 @@ spec:
                 registry_type:
                   enum:
                     - dockerhub
+                docker_hub_username:
+                  title: Docker Hub Username
+                  type: string
+                  description: "Your Docker Hub username (used to construct the image reference in k8s manifests)"
+              required:
+                - docker_hub_username
             - properties:
                 registry_type:
                   enum:
@@ -210,6 +216,7 @@ spec:
           registry_type: ${{parameters.registry_type}}
           variable_group: ${{parameters.variable_group}}
           registry_host: ${{parameters.registry_host if parameters.registry_host else ""}}
+          docker_hub_username: ${{parameters.docker_hub_username if parameters.docker_hub_username else ""}}
 
     - id: publish
       name: Publish

@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
         - name: ${{values.app_name}}
-          image: {% if values.registry_type == "dockerhub" %}${{values.registry_username}}/${{values.app_name}}:latest{% else %}${{values.registry_host}}/${{values.app_name}}:latest{% endif %}
+          image: {% if values.registry_type == "dockerhub" %}${{values.docker_hub_username}}/${{values.app_name}}:latest{% else %}${{values.registry_host}}/${{values.app_name}}:latest{% endif %}
           imagePullPolicy: Always
           ports:
             - containerPort: 80
