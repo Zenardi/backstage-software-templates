@@ -1,27 +1,48 @@
-# TODO
+## Creation Flow - GitOps Platform
+### Step 1
+Before using backstage, user must create some resources manually to have GitOps Platform, and that is:
+- Azure subscription
+- Create Azure DevOps Organization
+- Create an empty org-scoped Agent Pool on that ADO Org.
+- Create PAT: ARGOCD_ADO_PAT so ArgoCD is able to sync with git code
 
-## Wave 0 - Pre-Alpha 0.0.1
-- [x] EKS Template
-- [x] Spring API Template
-- [x] Container Registry Template
-- [x] Install crossplane plugin
-- [x] Test springboot-grpc template (api-docs)
-- [x] Improve python-app template (too simple)
-- [x] Fix ArgoCD health check of apps
-  - [x] Create folder argocd in react-ts-app and adapt pipeline
-  - [x] springgrpc argocd fix
-- [x] Fix S3 template: 
-- [x] Fix duplicate org_name field
-- [x] Automate the creation of grafana charts and metrics
-  - Cant push alerts, only dashboards
-- [x] Add ServiceMonitor kubernetes object on templates
-- [x] New Service to install ClusterProviderConfig on target cluster (remove this install from all crossplane tempaltes)
+### Step 2
+Go to backstage, and fill up the "New Project" template form with:
+- ADO Org Name
+- Project Name
+- Org-scoped Agent Pool Name
+- ArgoCD Personal Access Token create on ADO (ARGOCD_ADO_PAT)
 
-## Wave 1 - Pre-Alpha 0.0.2
+This Form will:
+1. Create KeyVault with ARGO_URL, ARGOCD_ADO_PAT, ARGOCD_PASSWORD, ACR_USERNAME, ACR_PASSWORD
+  - KV Name: kv-bckstg-[project-name]
+2. Create Variable Group in ADO Project with name vg-bckstg-[project-name]
+3. Link KV to Variable Group
+4. Create AKS GitOps Platform (monitoring stack, metric server, ingress, argocd, azure-devops-agent)
+  - AKS name: aks-[project-name]
+    > [!NOTE] 
+    > Each team will have its own GitOps Platform to host their solution and apps
+5. Create project-scoped Agent Pool. User created an empty org-scoped agent pool manually, so the template need to create a agent pool from the existed org-scoped which is already configured in step 4.
+6. Create Azure Container Registry
+   1. ACR name: acr-[project-name]
+
+
+## Next steps
+- [ ] Create templates
+  - [ ] ACR
+  - [ ] KV
+  - [ ] AKS
+  - [ ] Relational Posgres Database
+  - [ ] Variable Group
+- [ ] Create GitOps Platform template
 - [ ] Integrate SonarQube (project creation if possible and scan)
   - [ ] Install SonarQube Plugin
 - [ ] Install Kyverno plugin on backstage
-- [ ] RDS Aurora Template (SQL)
-- [ ] DynamoDB (NoSQL) Template
-- [ ] Angular Template
-- [ ] Ensure naming patterns
+- [ ] Ensure naming patterns (akv-xxx, acr-xxx)
+
+### About Resource Access
+- Feature: One user from project A cant be able to deploy their app in Cluster from project B.
+- Feature: Project A can only have one or more GitOps Clusters. When creating Project A app, it should only lists the clusters from Project A
+- Everyone can view others projects but no edits
+- Every project should implement their own control access and control who can access it. Platform team must not be responsible for each project secutiry
+  - Every project should have one or more DevOps Engineers/Platform Engineers/SREs in their disposal to support the project needs
