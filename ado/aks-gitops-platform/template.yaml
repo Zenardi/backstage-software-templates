@@ -22,19 +22,22 @@ spec:
 
     # ─── Prerequisites confirmation ──────────────────────────────────────────
     - title: Prerequisites
+      description: |
+        Before proceeding, make sure you have completed all of the following:
+
+        1. An Azure Subscription with **Contributor** access
+        2. An Azure DevOps Organization where you are an admin
+        3. An **org-scoped** self-hosted Agent Pool created in ADO (empty — agents will be deployed into it by this template)
+        4. A PAT for ArgoCD to sync ADO repos (`ARGOCD_ADO_PAT`) — needs **Code (Read)** scope
+        5. A Service Principal for Crossplane with **Owner** permission:
+           ```
+           az ad sp create-for-rbac --name "crossplane-azure-provider" --role Owner \
+             --scopes /subscriptions/<YOUR_SUBSCRIPTION_ID> --sdk-auth > azure-credentials.json
+           ```
       properties:
         prerequisites_confirmed:
-          title: I have completed all prerequisites
+          title: I have completed all prerequisites listed above
           type: boolean
-          description: |
-            Before proceeding, confirm you have:
-            1. An Azure Subscription with Contributor access
-            2. An Azure DevOps Organization (you are the admin)
-            3. An **org-scoped** self-hosted Agent Pool created in ADO (empty, agents will be deployed into it by this template)
-            4. A PAT for ArgoCD to sync ADO repos (ARGOCD_ADO_PAT) — needs Code (Read) scope
-            5. A Service Principal for Crossplane:
-               az ad sp create-for-rbac --name "crossplane-azure-provider" --role Contributor
-                 --scopes /subscriptions/<YOUR_SUBSCRIPTION_ID> --sdk-auth > azure-credentials.json
           default: false
           ui:widget: checkbox
       required:
@@ -92,8 +95,6 @@ spec:
         - subscription_id
         - tenant_id
         - location
-        - acr_name
-        - kv_suffix
         - crossplane_sp_client_id
         - crossplane_sp_object_id
         - crossplane_sp_client_secret
@@ -124,29 +125,12 @@ spec:
             - uksouth
             - germanywestcentral
 
-        acr_name:
-          title: ACR Name
-          type: string
-          description: >
-            Azure Container Registry name — must be globally unique, alphanumeric only (no hyphens),
-            5-50 characters. Example: acrmyproject
-          pattern: '^[a-zA-Z0-9]{5,50}$'
-
-        kv_suffix:
-          title: Key Vault Suffix (4 chars)
-          type: string
-          description: >
-            4-character alphanumeric suffix for Key Vault uniqueness (KV names must be globally unique).
-            Example: a1b2
-          pattern: '^[a-z0-9]{4}$'
-          default: aks1
-
         crossplane_sp_client_id:
           title: Crossplane Service Principal Client ID (App ID)
           type: string
           description: >
             The Application (Client) ID of the Service Principal created for Crossplane.
-            az ad sp create-for-rbac --name crossplane-azure-provider --role Contributor ...
+            Run: az ad sp create-for-rbac --name crossplane-azure-provider --role Owner ...
           pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
 
         crossplane_sp_object_id:
@@ -161,7 +145,7 @@ spec:
           title: Crossplane Service Principal Client Secret
           type: string
           description: The client secret for the Crossplane Service Principal
-          ui:widget: password
+          ui:field: Secret
 
     # ─── Azure DevOps ─────────────────────────────────────────────────────────
     - title: Azure DevOps
@@ -195,7 +179,7 @@ spec:
           description: >
             PAT (Code Read scope) so ArgoCD can sync code from private ADO repositories.
             This will be stored in Key Vault as ARGOCD-ADO-PAT.
-          ui:widget: password
+          ui:field: Secret
 
     # ─── Platform config ──────────────────────────────────────────────────────
     - title: Platform Configuration
@@ -230,9 +214,8 @@ spec:
           subscription_id: ${{parameters.subscription_id}}
           tenant_id: ${{parameters.tenant_id}}
           location: ${{parameters.location}}
-          acr_name: ${{parameters.acr_name}}
-          kv_suffix: ${{parameters.kv_suffix}}
-          kv_name: kv-${{parameters.project_name}}-${{parameters.kv_suffix}}
+          acr_name: "acr${{parameters.project_name | replace('-', '')}}${{parameters.environment}}"
+          kv_name: "akv-${{parameters.project_name}}-${{parameters.environment}}"
           rg_name: rg-${{parameters.project_name}}
           aks_name: aks-${{parameters.project_name}}
           mi_name: mi-${{parameters.project_name}}

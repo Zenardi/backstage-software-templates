@@ -84,10 +84,10 @@ spec:
           combine:
             variables:
               - fromFieldPath: spec.parameters.projectName
-              - fromFieldPath: spec.parameters.kvSuffix
+              - fromFieldPath: spec.parameters.environment
             strategy: string
             string:
-              fmt: "kv-%s-%s"
+              fmt: "akv-%s-%s"
           toFieldPath: metadata.name
         # Write KV resource ID to XR status
         - type: ToCompositeFieldPath

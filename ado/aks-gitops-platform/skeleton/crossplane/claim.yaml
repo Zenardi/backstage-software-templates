@@ -14,5 +14,5 @@ spec:
     tenantId: ${{values.tenant_id}}
     location: ${{values.location}}
     acrName: ${{values.acr_name}}
-    kvSuffix: ${{values.kv_suffix}}
+    environment: ${{values.environment}}
     crossplaneSpObjectId: ${{values.crossplane_sp_object_id}}

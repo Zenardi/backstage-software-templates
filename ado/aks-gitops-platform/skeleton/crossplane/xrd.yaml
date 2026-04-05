@@ -31,7 +31,7 @@ spec:
                     - tenantId
                     - location
                     - acrName
-                    - kvSuffix
+                    - environment
                     - crossplaneSpObjectId
                   properties:
                     projectName:
@@ -48,10 +48,10 @@ spec:
                       description: "Azure region (e.g. westeurope)"
                     acrName:
                       type: string
-                      description: "ACR name — alphanumeric only (e.g. acrrocketteam)"
-                    kvSuffix:
+                      description: "ACR name — alphanumeric only (e.g. acrrocketteamdev)"
+                    environment:
                       type: string
-                      description: "4-char suffix for Key Vault name uniqueness"
+                      description: "Deployment environment (poc, dev, staging, prod)"
                     crossplaneSpObjectId:
                       type: string
                       description: "Object ID of the Crossplane Service Principal (for KV role assignment)"

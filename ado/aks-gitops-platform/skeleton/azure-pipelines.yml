@@ -154,7 +154,7 @@ stages:
               ./scripts/wait-crossplane.sh Registry "$ACR_NAME" 10
 
               echo "Waiting for Key Vault to be ready..."
-              ./scripts/wait-crossplane.sh Vault "kv-$PROJECT_NAME-$(echo $KV_NAME | rev | cut -d- -f1 | rev)" 10
+              ./scripts/wait-crossplane.sh Vault "$KV_NAME" 10
 
               echo "Waiting for Managed Identity to be ready..."
               ./scripts/wait-crossplane.sh UserAssignedIdentity "mi-$PROJECT_NAME" 10
