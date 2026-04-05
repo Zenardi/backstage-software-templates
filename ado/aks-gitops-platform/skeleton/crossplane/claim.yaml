@@ -1,0 +1,18 @@
+apiVersion: platform.spacetech.io/v1alpha1
+kind: AKSGitOpsPlatformClaim
+metadata:
+  name: ${{values.project_name}}-platform
+  namespace: default
+spec:
+  compositionSelector:
+    matchLabels:
+      provider: azure
+      platform: aks-gitops
+  parameters:
+    projectName: ${{values.project_name}}
+    subscriptionId: ${{values.subscription_id}}
+    tenantId: ${{values.tenant_id}}
+    location: ${{values.location}}
+    acrName: ${{values.acr_name}}
+    kvSuffix: ${{values.kv_suffix}}
+    crossplaneSpObjectId: ${{values.crossplane_sp_object_id}}

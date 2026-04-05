@@ -1,0 +1,66 @@
+# Crossplane Azure Sub-Providers
+#
+# The upbound/provider-family-azure already installs the family controller.
+# This file deploys the individual sub-providers needed for the AKS GitOps Platform:
+#   - provider-azure-azure           (ResourceGroup)
+#   - provider-azure-containerregistry (Registry / ACR)
+#   - provider-azure-keyvault        (Vault)
+#   - provider-azure-managedidentity (UserAssignedIdentity)
+#   - provider-azure-authorization   (RoleAssignment)
+#   - provider-azure-containerservice (KubernetesCluster / AKS)
+#
+# Apply to KIND cluster: kubectl apply -f crossplane/providers.yaml
+# Wait for all providers to become healthy before applying the composition.
+
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: upbound-provider-azure-azure
+spec:
+  package: xpkg.upbound.io/upbound/provider-azure-azure:v2.5.2
+  packagePullPolicy: IfNotPresent
+
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: upbound-provider-azure-containerregistry
+spec:
+  package: xpkg.upbound.io/upbound/provider-azure-containerregistry:v2.5.2
+  packagePullPolicy: IfNotPresent
+
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: upbound-provider-azure-keyvault
+spec:
+  package: xpkg.upbound.io/upbound/provider-azure-keyvault:v2.5.2
+  packagePullPolicy: IfNotPresent
+
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: upbound-provider-azure-managedidentity
+spec:
+  package: xpkg.upbound.io/upbound/provider-azure-managedidentity:v2.5.2
+  packagePullPolicy: IfNotPresent
+
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: upbound-provider-azure-authorization
+spec:
+  package: xpkg.upbound.io/upbound/provider-azure-authorization:v2.5.2
+  packagePullPolicy: IfNotPresent
+
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: upbound-provider-azure-containerservice
+spec:
+  package: xpkg.upbound.io/upbound/provider-azure-containerservice:v2.5.2
+  packagePullPolicy: IfNotPresent

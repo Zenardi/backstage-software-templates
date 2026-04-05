@@ -1,0 +1,240 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: aks-gitops-platform
+  labels:
+    provider: azure
+    platform: aks-gitops
+spec:
+  compositeTypeRef:
+    apiVersion: platform.spacetech.io/v1alpha1
+    kind: AKSGitOpsPlatform
+  mode: Resources
+  resources:
+
+    # ─── 1. Resource Group ─────────────────────────────────────────────────
+    - name: resource-group
+      base:
+        apiVersion: azure.upbound.io/v1beta1
+        kind: ResourceGroup
+        spec:
+          forProvider:
+            location: westeurope
+          providerConfigRef:
+            name: azure-default
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.location
+          toFieldPath: spec.forProvider.location
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.projectName
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "rg-%s"
+
+    # ─── 2. Azure Container Registry ──────────────────────────────────────
+    - name: container-registry
+      base:
+        apiVersion: containerregistry.azure.upbound.io/v1beta1
+        kind: Registry
+        spec:
+          forProvider:
+            location: westeurope
+            resourceGroupNameSelector:
+              matchControllerRef: true
+            sku: Basic
+            adminEnabled: true
+          providerConfigRef:
+            name: azure-default
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.location
+          toFieldPath: spec.forProvider.location
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.acrName
+          toFieldPath: metadata.name
+
+    # ─── 3. Key Vault ──────────────────────────────────────────────────────
+    - name: key-vault
+      base:
+        apiVersion: keyvault.azure.upbound.io/v1beta1
+        kind: Vault
+        spec:
+          forProvider:
+            location: westeurope
+            resourceGroupNameSelector:
+              matchControllerRef: true
+            skuName: standard
+            softDeleteRetentionDays: 7
+            purgeProtectionEnabled: false
+            enableRbacAuthorization: true
+          providerConfigRef:
+            name: azure-default
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.location
+          toFieldPath: spec.forProvider.location
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.tenantId
+          toFieldPath: spec.forProvider.tenantId
+        - type: CombineFromComposite
+          combine:
+            variables:
+              - fromFieldPath: spec.parameters.projectName
+              - fromFieldPath: spec.parameters.kvSuffix
+            strategy: string
+            string:
+              fmt: "kv-%s-%s"
+          toFieldPath: metadata.name
+        # Write KV resource ID to XR status
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.id
+          toFieldPath: status.kvResourceId
+
+    # ─── 4. Managed Identity ───────────────────────────────────────────────
+    - name: managed-identity
+      base:
+        apiVersion: managedidentity.azure.upbound.io/v1beta1
+        kind: UserAssignedIdentity
+        spec:
+          forProvider:
+            location: westeurope
+            resourceGroupNameSelector:
+              matchControllerRef: true
+          providerConfigRef:
+            name: azure-default
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.location
+          toFieldPath: spec.forProvider.location
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.projectName
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "mi-%s"
+        # Write MI principal ID to XR status (used by role assignments below)
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.principalId
+          toFieldPath: status.managedIdentityPrincipalId
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.clientId
+          toFieldPath: status.managedIdentityClientId
+
+    # ─── 5. Role Assignment: Managed Identity → Key Vault Administrator ─────
+    - name: mi-keyvault-admin-role
+      base:
+        apiVersion: authorization.azure.upbound.io/v1beta1
+        kind: RoleAssignment
+        spec:
+          forProvider:
+            # Key Vault Administrator role definition ID
+            roleDefinitionId: "/providers/Microsoft.Authorization/roleDefinitions/00482a5a-887f-4fb3-b363-3b7fe8e74483"
+          providerConfigRef:
+            name: azure-default
+      patches:
+        # Scope = Key Vault ARM ID (from status)
+        - type: FromCompositeFieldPath
+          fromFieldPath: status.kvResourceId
+          toFieldPath: spec.forProvider.scope
+        # Principal = MI Object ID (from status)
+        - type: FromCompositeFieldPath
+          fromFieldPath: status.managedIdentityPrincipalId
+          toFieldPath: spec.forProvider.principalId
+        - type: CombineFromComposite
+          combine:
+            variables:
+              - fromFieldPath: spec.parameters.projectName
+            strategy: string
+            string:
+              fmt: "mi-%s-kv-admin"
+          toFieldPath: metadata.name
+
+    # ─── 6. Role Assignment: Crossplane SP → Key Vault Administrator ────────
+    - name: crossplane-sp-keyvault-admin-role
+      base:
+        apiVersion: authorization.azure.upbound.io/v1beta1
+        kind: RoleAssignment
+        spec:
+          forProvider:
+            # Key Vault Administrator role definition ID
+            roleDefinitionId: "/providers/Microsoft.Authorization/roleDefinitions/00482a5a-887f-4fb3-b363-3b7fe8e74483"
+          providerConfigRef:
+            name: azure-default
+      patches:
+        # Scope = Key Vault ARM ID (from status)
+        - type: FromCompositeFieldPath
+          fromFieldPath: status.kvResourceId
+          toFieldPath: spec.forProvider.scope
+        # Principal = Crossplane SP Object ID
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.crossplaneSpObjectId
+          toFieldPath: spec.forProvider.principalId
+        - type: CombineFromComposite
+          combine:
+            variables:
+              - fromFieldPath: spec.parameters.projectName
+            strategy: string
+            string:
+              fmt: "crossplane-%s-kv-admin"
+          toFieldPath: metadata.name
+
+    # ─── 7. AKS Cluster ────────────────────────────────────────────────────
+    - name: aks-cluster
+      base:
+        apiVersion: containerservice.azure.upbound.io/v1beta1
+        kind: KubernetesCluster
+        spec:
+          forProvider:
+            location: westeurope
+            resourceGroupNameSelector:
+              matchControllerRef: true
+            defaultNodePool:
+              - name: default
+                enableAutoScaling: true
+                minCount: 1
+                maxCount: 3
+                vmSize: Standard_B2s
+                type: VirtualMachineScaleSets
+                scaleDownMode: Delete
+                # Spot instances for cost optimisation
+                priority: Spot
+                evictionPolicy: Delete
+                spotMaxPrice: -1
+            identity:
+              - type: SystemAssigned
+            networkProfile:
+              - networkPlugin: azure
+                loadBalancerSku: standard
+            roleBasedAccessControlEnabled: true
+          providerConfigRef:
+            name: azure-default
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.location
+          toFieldPath: spec.forProvider.location
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.projectName
+          toFieldPath: metadata.name
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "aks-%s"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.parameters.projectName
+          toFieldPath: spec.forProvider.dnsPrefix
+          transforms:
+            - type: string
+              string:
+                type: Format
+                fmt: "aks-%s"
+        # Write AKS resource ID to XR status
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.id
+          toFieldPath: status.aksResourceId

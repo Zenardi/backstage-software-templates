@@ -1,0 +1,32 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${{values.project_name}}-gitops-platform
+  description: "AKS GitOps Platform for ${{values.project_name}} — AKS, ArgoCD, Traefik, Prometheus/Grafana, Crossplane, Azure DevOps Agents"
+  annotations:
+    dev.azure.com/host-org: dev.azure.com/${{values.ado_organization}}
+    dev.azure.com/project-repo: ${{values.ado_project}}/${{values.project_name}}-gitops-platform
+    dev.azure.com/build-definition: ${{values.project_name}}-gitops-platform
+    backstage.io/techdocs-ref: dir:.
+    grafana/dashboard-selector: "title == '${{values.project_name}}-platform'"
+    grafana/alert-label-selector: "platform=${{values.project_name}}"
+  tags:
+    - aks
+    - gitops
+    - platform
+    - crossplane
+    - azure
+  links:
+    - url: https://portal.azure.com/#@${{values.tenant_id}}/resource/subscriptions/${{values.subscription_id}}/resourceGroups/${{values.rg_name}}
+      title: Azure Resource Group
+      icon: dashboard
+      type: admin-dashboard
+    - url: https://portal.azure.com/#@${{values.tenant_id}}/resource/subscriptions/${{values.subscription_id}}/resourceGroups/${{values.rg_name}}/providers/Microsoft.ContainerService/managedClusters/${{values.aks_name}}
+      title: AKS Cluster
+      icon: dashboard
+      type: admin-dashboard
+spec:
+  type: infrastructure
+  owner: ${{values.owner}}
+  lifecycle: experimental
+  system: ${{values.system}}

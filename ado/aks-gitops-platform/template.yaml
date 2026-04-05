@@ -1,0 +1,295 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: aks-gitops-platform
+  title: Create AKS GitOps Platform
+  description: >
+    Provision a complete AKS-based GitOps platform for a team. Includes AKS cluster (Spot instances),
+    ArgoCD, Traefik, Prometheus/Grafana monitoring, Crossplane, Azure DevOps agents,
+    ACR, Key Vault, Managed Identity, and ADO service connection + variable group.
+  tags:
+    - azure
+    - aks
+    - crossplane
+    - gitops
+    - platform
+    - azure-devops
+spec:
+  owner: group:default/platform-engineering
+  type: infrastructure
+
+  parameters:
+
+    # ─── Prerequisites confirmation ──────────────────────────────────────────
+    - title: Prerequisites
+      properties:
+        prerequisites_confirmed:
+          title: I have completed all prerequisites
+          type: boolean
+          description: |
+            Before proceeding, confirm you have:
+            1. An Azure Subscription with Contributor access
+            2. An Azure DevOps Organization (you are the admin)
+            3. An **org-scoped** self-hosted Agent Pool created in ADO (empty, agents will be deployed into it by this template)
+            4. A PAT for ArgoCD to sync ADO repos (ARGOCD_ADO_PAT) — needs Code (Read) scope
+            5. A Service Principal for Crossplane:
+               az ad sp create-for-rbac --name "crossplane-azure-provider" --role Contributor
+                 --scopes /subscriptions/<YOUR_SUBSCRIPTION_ID> --sdk-auth > azure-credentials.json
+          default: false
+          ui:widget: checkbox
+      required:
+        - prerequisites_confirmed
+
+    # ─── Platform info ────────────────────────────────────────────────────────
+    - title: Platform Info
+      required:
+        - project_name
+        - environment
+        - owner
+        - system
+      properties:
+        project_name:
+          title: Project Name
+          type: string
+          description: >
+            Base name for all resources (e.g. "rocketteam"). Used to name RG, ACR, KV, AKS, MI.
+            Must be lowercase, alphanumeric + hyphens, no leading/trailing hyphens.
+          pattern: '^[a-z][a-z0-9]*(-[a-z0-9]+)*$'
+
+        environment:
+          title: Environment
+          type: string
+          description: Deployment environment
+          enum:
+            - poc
+            - dev
+            - staging
+            - prod
+
+        owner:
+          title: Owner
+          type: string
+          description: The team that owns this platform
+          ui:field: OwnerPicker
+          ui:options:
+            allowedKinds:
+              - Group
+
+        system:
+          title: System or Project Responsible
+          type: string
+          description: The Backstage system this platform belongs to
+          ui:field: OwnerPicker
+          ui:options:
+            allowArbitraryValues: false
+            catalogFilter:
+              - kind: System
+                'spec.domain': spacetech
+
+    # ─── Azure configuration ──────────────────────────────────────────────────
+    - title: Azure Configuration
+      required:
+        - subscription_id
+        - tenant_id
+        - location
+        - acr_name
+        - kv_suffix
+        - crossplane_sp_client_id
+        - crossplane_sp_object_id
+        - crossplane_sp_client_secret
+      properties:
+        subscription_id:
+          title: Azure Subscription ID
+          type: string
+          description: The Azure Subscription where all resources will be provisioned
+          pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+
+        tenant_id:
+          title: Azure Tenant ID
+          type: string
+          description: Your Azure Active Directory Tenant ID
+          pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+
+        location:
+          title: Azure Region
+          type: string
+          description: Azure region for all resources
+          default: westeurope
+          enum:
+            - westeurope
+            - northeurope
+            - eastus
+            - eastus2
+            - westus2
+            - uksouth
+            - germanywestcentral
+
+        acr_name:
+          title: ACR Name
+          type: string
+          description: >
+            Azure Container Registry name — must be globally unique, alphanumeric only (no hyphens),
+            5-50 characters. Example: acrmyproject
+          pattern: '^[a-zA-Z0-9]{5,50}$'
+
+        kv_suffix:
+          title: Key Vault Suffix (4 chars)
+          type: string
+          description: >
+            4-character alphanumeric suffix for Key Vault uniqueness (KV names must be globally unique).
+            Example: a1b2
+          pattern: '^[a-z0-9]{4}$'
+          default: aks1
+
+        crossplane_sp_client_id:
+          title: Crossplane Service Principal Client ID (App ID)
+          type: string
+          description: >
+            The Application (Client) ID of the Service Principal created for Crossplane.
+            az ad sp create-for-rbac --name crossplane-azure-provider --role Contributor ...
+          pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+
+        crossplane_sp_object_id:
+          title: Crossplane Service Principal Object ID
+          type: string
+          description: >
+            The Object ID (not the App ID) of the Crossplane Service Principal.
+            Run: az ad sp show --id <CLIENT_ID> --query id -o tsv
+          pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+
+        crossplane_sp_client_secret:
+          title: Crossplane Service Principal Client Secret
+          type: string
+          description: The client secret for the Crossplane Service Principal
+          ui:widget: password
+
+    # ─── Azure DevOps ─────────────────────────────────────────────────────────
+    - title: Azure DevOps
+      required:
+        - ado_organization
+        - ado_project
+        - ado_org_agent_pool
+        - argocd_ado_pat
+      properties:
+        ado_organization:
+          title: Azure DevOps Organization
+          type: string
+          description: Your Azure DevOps organization name (e.g. Zenardi)
+
+        ado_project:
+          title: Azure DevOps Project
+          type: string
+          description: The ADO project where the repository will be created
+
+        ado_org_agent_pool:
+          title: Org-Scoped Agent Pool Name
+          type: string
+          description: >
+            The name of the org-scoped self-hosted agent pool you created as a prerequisite.
+            The pipeline will deploy AKS-based agents into this pool.
+          default: kind-backstage
+
+        argocd_ado_pat:
+          title: ArgoCD ADO Personal Access Token
+          type: string
+          description: >
+            PAT (Code Read scope) so ArgoCD can sync code from private ADO repositories.
+            This will be stored in Key Vault as ARGOCD-ADO-PAT.
+          ui:widget: password
+
+    # ─── Platform config ──────────────────────────────────────────────────────
+    - title: Platform Configuration
+      properties:
+        argocd_url:
+          title: ArgoCD Server URL
+          type: string
+          description: >
+            ArgoCD server URL accessible from within the cluster.
+            Default uses in-cluster DNS.
+          default: argocd-server.argocd
+
+        ado_agents_count:
+          title: Number of Azure DevOps Agent Pods
+          type: integer
+          description: Number of ADO agent pods to run in the AKS cluster
+          default: 2
+          minimum: 1
+          maximum: 10
+
+  steps:
+    - id: fetch-base
+      name: Fetch Template
+      action: fetch:template
+      input:
+        url: ./skeleton
+        values:
+          project_name: ${{parameters.project_name}}
+          environment: ${{parameters.environment}}
+          owner: ${{parameters.owner}}
+          system: ${{parameters.system}}
+          subscription_id: ${{parameters.subscription_id}}
+          tenant_id: ${{parameters.tenant_id}}
+          location: ${{parameters.location}}
+          acr_name: ${{parameters.acr_name}}
+          kv_suffix: ${{parameters.kv_suffix}}
+          kv_name: kv-${{parameters.project_name}}-${{parameters.kv_suffix}}
+          rg_name: rg-${{parameters.project_name}}
+          aks_name: aks-${{parameters.project_name}}
+          mi_name: mi-${{parameters.project_name}}
+          sc_name: sc-${{parameters.project_name}}
+          vg_name: vg-${{parameters.project_name}}
+          crossplane_sp_client_id: ${{parameters.crossplane_sp_client_id}}
+          crossplane_sp_object_id: ${{parameters.crossplane_sp_object_id}}
+          crossplane_sp_client_secret: ${{parameters.crossplane_sp_client_secret}}
+          ado_organization: ${{parameters.ado_organization}}
+          ado_project: ${{parameters.ado_project}}
+          ado_org_agent_pool: ${{parameters.ado_org_agent_pool}}
+          argocd_ado_pat: ${{parameters.argocd_ado_pat}}
+          argocd_url: ${{parameters.argocd_url or 'argocd-server.argocd'}}
+          ado_agents_count: ${{parameters.ado_agents_count or 2}}
+          destination:
+            host: dev.azure.com
+            owner: ${{parameters.ado_organization}}
+            project: ${{parameters.ado_project}}
+            repo: ${{parameters.project_name}}-gitops-platform
+
+    - id: publish
+      name: Publish to Azure DevOps
+      action: publish:azure
+      input:
+        description: "AKS GitOps Platform for ${{parameters.project_name}}"
+        repoUrl: "dev.azure.com?organization=${{parameters.ado_organization}}&owner=${{parameters.ado_organization}}&repo=${{parameters.project_name}}-gitops-platform&project=${{parameters.ado_project}}"
+        defaultBranch: main
+
+    - id: create-pipeline
+      name: Create and Trigger Platform Pipeline
+      action: azure:pipeline:create-and-run
+      input:
+        organization: ${{parameters.ado_organization}}
+        project: ${{parameters.ado_project}}
+        repoName: ${{parameters.project_name}}-gitops-platform
+        pipelineName: ${{parameters.project_name}}-gitops-platform
+        agentPoolName: ${{parameters.ado_org_agent_pool}}
+        pipelineYamlPath: azure-pipelines.yml
+
+    - id: register
+      name: Register in Catalog
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps['publish'].output.repoContentsUrl }}
+        catalogInfoPath: "/catalog-info.yaml"
+
+  output:
+    links:
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}
+      - title: Repository
+        url: ${{ steps['publish'].output.remoteUrl }}
+        icon: scaffolder
+      - title: Pipeline
+        url: ${{ steps['create-pipeline'].output.pipelineUrl }}
+        icon: scaffolder
+      - title: Pipeline Run
+        url: ${{ steps['create-pipeline'].output.runUrl }}
+        icon: scaffolder

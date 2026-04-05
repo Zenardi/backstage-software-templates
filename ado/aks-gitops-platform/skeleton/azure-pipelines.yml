@@ -1,0 +1,356 @@
+name: ${{values.project_name}}-gitops-platform
+
+trigger:
+  branches:
+    include:
+      - main
+
+variables:
+  PROJECT_NAME:          "${{values.project_name}}"
+  RESOURCE_GROUP:        "${{values.rg_name}}"
+  AKS_NAME:              "${{values.aks_name}}"
+  ACR_NAME:              "${{values.acr_name}}"
+  KV_NAME:               "${{values.kv_name}}"
+  MI_NAME:               "${{values.mi_name}}"
+  SC_NAME:               "${{values.sc_name}}"
+  VG_NAME:               "${{values.vg_name}}"
+  SUBSCRIPTION_ID:       "${{values.subscription_id}}"
+  TENANT_ID:             "${{values.tenant_id}}"
+  LOCATION:              "${{values.location}}"
+  ADO_ORGANIZATION:      "${{values.ado_organization}}"
+  ADO_PROJECT:           "${{values.ado_project}}"
+  ADO_ORG_AGENT_POOL:    "${{values.ado_org_agent_pool}}"
+  ARGOCD_URL:            "${{values.argocd_url}}"
+  ADO_AGENTS_COUNT:      "${{values.ado_agents_count}}"
+  CROSSPLANE_SP_CLIENT_ID:   "${{values.crossplane_sp_client_id}}"
+  CROSSPLANE_SP_OBJECT_ID:   "${{values.crossplane_sp_object_id}}"
+  CROSSPLANE_SP_CLIENT_SECRET: "${{values.crossplane_sp_client_secret}}"
+  ARGOCD_ADO_PAT:        "${{values.argocd_ado_pat}}"
+
+stages:
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # STAGE 1: Provision Azure Resources via Crossplane
+  # Applies XRD + Composition + Claim to KIND cluster and waits for AKS ready.
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  - stage: Provision
+    displayName: Provision Azure Resources
+    jobs:
+      - job: ProvisionAzure
+        displayName: Apply Crossplane + Wait for AKS
+        timeoutInMinutes: 60
+        pool:
+          name: $(ADO_ORG_AGENT_POOL)
+        steps:
+          - checkout: self
+
+          - script: |
+              echo "Installing kubectl..."
+              curl -sSL -o /tmp/kubectl \
+                https://dl.k8s.io/release/v1.28.0/bin/linux/amd64/kubectl
+              chmod +x /tmp/kubectl
+              /tmp/kubectl version --client
+            displayName: Install kubectl
+
+          - script: |
+              echo "Installing Helm..."
+              curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+              helm version
+            displayName: Install Helm
+
+          - script: |
+              echo "Installing Azure CLI..."
+              curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+              az --version
+            displayName: Install Azure CLI
+
+          - script: |
+              echo "Logging into Azure..."
+              az login \
+                --service-principal \
+                --username "$CROSSPLANE_SP_CLIENT_ID" \
+                --password "$CROSSPLANE_SP_CLIENT_SECRET" \
+                --tenant "$TENANT_ID"
+              az account set --subscription "$SUBSCRIPTION_ID"
+              echo "Azure login successful"
+            displayName: Azure Login
+            env:
+              CROSSPLANE_SP_CLIENT_ID: $(CROSSPLANE_SP_CLIENT_ID)
+              CROSSPLANE_SP_CLIENT_SECRET: $(CROSSPLANE_SP_CLIENT_SECRET)
+              TENANT_ID: $(TENANT_ID)
+              SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
+
+          # ── Apply Crossplane providers ──────────────────────────────────
+          - script: |
+              echo "Applying Crossplane Azure sub-providers..."
+              /tmp/kubectl apply -f crossplane/providers.yaml
+
+              echo "Waiting for providers to become healthy (up to 10 min)..."
+              PROVIDERS=(
+                upbound-provider-azure-azure
+                upbound-provider-azure-containerregistry
+                upbound-provider-azure-keyvault
+                upbound-provider-azure-managedidentity
+                upbound-provider-azure-authorization
+                upbound-provider-azure-containerservice
+              )
+
+              for PROVIDER in "${PROVIDERS[@]}"; do
+                echo "Waiting for $PROVIDER..."
+                for i in $(seq 1 40); do
+                  HEALTHY=$(/tmp/kubectl get provider "$PROVIDER" \
+                    -o jsonpath='{.status.conditions[?(@.type=="Healthy")].status}' 2>/dev/null || echo "")
+                  if [[ "$HEALTHY" == "True" ]]; then
+                    echo "  ✅ $PROVIDER is healthy"
+                    break
+                  fi
+                  if [[ "$i" == "40" ]]; then
+                    echo "  ❌ Timeout waiting for $PROVIDER"
+                    /tmp/kubectl get provider "$PROVIDER" -o yaml | grep -A 10 "conditions:"
+                  fi
+                  sleep 15
+                done
+              done
+            displayName: Apply and Wait for Crossplane Providers
+
+          # ── Apply XRD + Composition ─────────────────────────────────────
+          - script: |
+              echo "Applying XRD..."
+              /tmp/kubectl apply -f crossplane/xrd.yaml
+
+              echo "Waiting for XRD to be established..."
+              for i in $(seq 1 20); do
+                ESTABLISHED=$(/tmp/kubectl get compositeresourcedefinition \
+                  aksgitotsplatforms.platform.spacetech.io \
+                  -o jsonpath='{.status.conditions[?(@.type=="Established")].status}' 2>/dev/null || echo "")
+                if [[ "$ESTABLISHED" == "True" ]]; then
+                  echo "✅ XRD established"
+                  break
+                fi
+                echo "[$i/20] XRD not yet established, waiting 10s..."
+                sleep 10
+              done
+
+              echo "Applying Composition..."
+              /tmp/kubectl apply -f crossplane/composition.yaml
+              echo "✅ XRD and Composition applied"
+            displayName: Apply XRD and Composition
+
+          # ── Apply Claim (provisions all Azure resources) ─────────────────
+          - script: |
+              echo "Applying AKS GitOps Platform Claim..."
+              /tmp/kubectl apply -f crossplane/claim.yaml
+              echo "✅ Claim applied — Crossplane is now provisioning Azure resources"
+            displayName: Apply Crossplane Claim
+
+          # ── Wait for AKS to be ready (up to 35 min) ─────────────────────
+          - script: |
+              chmod +x scripts/wait-crossplane.sh
+
+              echo "Waiting for Resource Group to be ready..."
+              ./scripts/wait-crossplane.sh ResourceGroup "rg-$PROJECT_NAME" 15
+
+              echo "Waiting for Container Registry to be ready..."
+              ./scripts/wait-crossplane.sh Registry "$ACR_NAME" 10
+
+              echo "Waiting for Key Vault to be ready..."
+              ./scripts/wait-crossplane.sh Vault "kv-$PROJECT_NAME-$(echo $KV_NAME | rev | cut -d- -f1 | rev)" 10
+
+              echo "Waiting for Managed Identity to be ready..."
+              ./scripts/wait-crossplane.sh UserAssignedIdentity "mi-$PROJECT_NAME" 10
+
+              echo "Waiting for AKS Cluster to be ready (this takes ~15-20 min)..."
+              ./scripts/wait-crossplane.sh KubernetesCluster "aks-$PROJECT_NAME" 35
+            displayName: Wait for Azure Resources
+            env:
+              PROJECT_NAME: $(PROJECT_NAME)
+              ACR_NAME: $(ACR_NAME)
+              KV_NAME: $(KV_NAME)
+
+          - script: |
+              echo "##[section]Azure Resource Summary"
+              echo "Resource Group: rg-$PROJECT_NAME"
+              az group show --name "rg-$PROJECT_NAME" --query "{name:name, location:location, provisioningState:properties.provisioningState}" 2>/dev/null || true
+              echo ""
+              az aks show --resource-group "rg-$PROJECT_NAME" --name "aks-$PROJECT_NAME" \
+                --query "{name:name, fqdn:privateFqdn, state:provisioningState}" 2>/dev/null || \
+              az aks show --resource-group "rg-$PROJECT_NAME" --name "aks-$PROJECT_NAME" \
+                --query "{name:name, state:provisioningState}" 2>/dev/null || true
+            displayName: Show Provisioned Resources
+            env:
+              PROJECT_NAME: $(PROJECT_NAME)
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # STAGE 2: Configure AKS Platform
+  # Connects to AKS and installs all platform tools via Helm.
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  - stage: ConfigureAKS
+    displayName: Configure AKS Platform
+    dependsOn: Provision
+    jobs:
+      - job: InstallPlatformTools
+        displayName: Install Helm Charts on AKS
+        timeoutInMinutes: 45
+        pool:
+          name: $(ADO_ORG_AGENT_POOL)
+        steps:
+          - checkout: self
+
+          - script: |
+              echo "Installing tools..."
+              curl -sSL -o /tmp/kubectl \
+                https://dl.k8s.io/release/v1.28.0/bin/linux/amd64/kubectl
+              chmod +x /tmp/kubectl
+              curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+              curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+              echo "All tools installed"
+            displayName: Install Tools
+
+          - script: |
+              az login \
+                --service-principal \
+                --username "$CROSSPLANE_SP_CLIENT_ID" \
+                --password "$CROSSPLANE_SP_CLIENT_SECRET" \
+                --tenant "$TENANT_ID"
+              az account set --subscription "$SUBSCRIPTION_ID"
+            displayName: Azure Login
+            env:
+              CROSSPLANE_SP_CLIENT_ID: $(CROSSPLANE_SP_CLIENT_ID)
+              CROSSPLANE_SP_CLIENT_SECRET: $(CROSSPLANE_SP_CLIENT_SECRET)
+              TENANT_ID: $(TENANT_ID)
+              SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
+
+          - script: |
+              chmod +x scripts/install-aks-platform.sh
+              export PATH="/tmp:$PATH"
+              ./scripts/install-aks-platform.sh
+            displayName: Install Platform Tools on AKS
+            env:
+              AKS_NAME: $(AKS_NAME)
+              RESOURCE_GROUP: $(RESOURCE_GROUP)
+              ADO_ORGANIZATION: $(ADO_ORGANIZATION)
+              ADO_ORG_AGENT_POOL: $(ADO_ORG_AGENT_POOL)
+              ADO_PAT: $(ARGOCD_ADO_PAT)
+              ADO_AGENTS_COUNT: $(ADO_AGENTS_COUNT)
+              CROSSPLANE_SP_CLIENT_ID: $(CROSSPLANE_SP_CLIENT_ID)
+              CROSSPLANE_SP_CLIENT_SECRET: $(CROSSPLANE_SP_CLIENT_SECRET)
+              CROSSPLANE_SP_TENANT_ID: $(TENANT_ID)
+              CROSSPLANE_SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
+
+          # Read ArgoCD password from outputs and publish as pipeline variable
+          - script: |
+              source /tmp/platform-outputs.env 2>/dev/null || true
+              if [[ -n "$ARGOCD_PASSWORD" ]]; then
+                echo "##vso[task.setvariable variable=ARGOCD_PASSWORD;isOutput=true;issecret=true]$ARGOCD_PASSWORD"
+                echo "✅ ArgoCD password captured"
+              else
+                echo "⚠️  ArgoCD password not found in outputs"
+              fi
+            displayName: Capture ArgoCD Password
+            name: CaptureOutputs
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # STAGE 3: Configure ADO Resources
+  # Creates service connection, variable group (KV-linked), and project pool.
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  - stage: ConfigureADO
+    displayName: Configure ADO Resources
+    dependsOn: ConfigureAKS
+    variables:
+      ARGOCD_PASSWORD: $[ stageDependencies.ConfigureAKS.InstallPlatformTools.outputs['CaptureOutputs.ARGOCD_PASSWORD'] ]
+    jobs:
+      - job: SetupADOResources
+        displayName: Service Connection + Variable Group + Agent Pool
+        timeoutInMinutes: 30
+        pool:
+          name: $(ADO_ORG_AGENT_POOL)
+        steps:
+          - checkout: self
+
+          - script: |
+              curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+              az extension add --name azure-devops --only-show-errors
+              az --version
+            displayName: Install Azure CLI + ADO Extension
+
+          - script: |
+              az login \
+                --service-principal \
+                --username "$CROSSPLANE_SP_CLIENT_ID" \
+                --password "$CROSSPLANE_SP_CLIENT_SECRET" \
+                --tenant "$TENANT_ID"
+              az account set --subscription "$SUBSCRIPTION_ID"
+            displayName: Azure Login
+            env:
+              CROSSPLANE_SP_CLIENT_ID: $(CROSSPLANE_SP_CLIENT_ID)
+              CROSSPLANE_SP_CLIENT_SECRET: $(CROSSPLANE_SP_CLIENT_SECRET)
+              TENANT_ID: $(TENANT_ID)
+              SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
+
+          - script: |
+              chmod +x scripts/setup-keyvault-secrets.sh
+              ./scripts/setup-keyvault-secrets.sh
+            displayName: Store Secrets in Key Vault
+            env:
+              KV_NAME: $(KV_NAME)
+              ARGOCD_URL: $(ARGOCD_URL)
+              ARGOCD_ADO_PAT: $(ARGOCD_ADO_PAT)
+              ARGOCD_PASSWORD: $(ARGOCD_PASSWORD)
+              ACR_NAME: $(ACR_NAME)
+              RESOURCE_GROUP: $(RESOURCE_GROUP)
+              CROSSPLANE_SP_CLIENT_ID: $(CROSSPLANE_SP_CLIENT_ID)
+              CROSSPLANE_SP_CLIENT_SECRET: $(CROSSPLANE_SP_CLIENT_SECRET)
+
+          - script: |
+              chmod +x scripts/setup-ado-resources.sh
+              echo "$(ARGOCD_ADO_PAT)" | az devops login \
+                --organization "https://dev.azure.com/$ADO_ORGANIZATION" 2>/dev/null || \
+              az devops login \
+                --organization "https://dev.azure.com/$ADO_ORGANIZATION" <<< "$(ARGOCD_ADO_PAT)"
+              ./scripts/setup-ado-resources.sh
+            displayName: Create ADO Service Connection, Variable Group and Agent Pool
+            env:
+              ADO_ORGANIZATION: $(ADO_ORGANIZATION)
+              ADO_PROJECT: $(ADO_PROJECT)
+              PROJECT_NAME: $(PROJECT_NAME)
+              SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
+              RESOURCE_GROUP: $(RESOURCE_GROUP)
+              MI_NAME: $(MI_NAME)
+              MI_TENANT_ID: $(TENANT_ID)
+              KV_NAME: $(KV_NAME)
+              SC_NAME: $(SC_NAME)
+              VG_NAME: $(VG_NAME)
+              ADO_ORG_AGENT_POOL: $(ADO_ORG_AGENT_POOL)
+              ARGOCD_ADO_PAT: $(ARGOCD_ADO_PAT)
+
+          - script: |
+              echo ""
+              echo "══════════════════════════════════════════════════"
+              echo "🎉  AKS GitOps Platform Provisioning Complete!"
+              echo "══════════════════════════════════════════════════"
+              echo ""
+              echo "  Project:          $PROJECT_NAME"
+              echo "  Resource Group:   $RESOURCE_GROUP"
+              echo "  AKS Cluster:      $AKS_NAME"
+              echo "  ACR:              $ACR_NAME"
+              echo "  Key Vault:        $KV_NAME"
+              echo "  Managed Identity: $MI_NAME"
+              echo "  Service Conn:     $SC_NAME"
+              echo "  Variable Group:   $VG_NAME"
+              echo ""
+              echo "  Next steps:"
+              echo "  1. Connect to AKS: az aks get-credentials -g $RESOURCE_GROUP -n $AKS_NAME"
+              echo "  2. Access ArgoCD: kubectl port-forward svc/argocd-server -n argocd 8080:80"
+              echo "  3. Use Variable Group '$VG_NAME' in new project pipelines"
+              echo "  4. Deploy new apps using the 'react-ts-app' or 'springboot-api' templates"
+              echo ""
+            displayName: Platform Provisioning Summary
+            env:
+              PROJECT_NAME: $(PROJECT_NAME)
+              RESOURCE_GROUP: $(RESOURCE_GROUP)
+              AKS_NAME: $(AKS_NAME)
+              ACR_NAME: $(ACR_NAME)
+              KV_NAME: $(KV_NAME)
+              MI_NAME: $(MI_NAME)
+              SC_NAME: $(SC_NAME)
+              VG_NAME: $(VG_NAME)

@@ -1,0 +1,72 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: aksgitotsplatforms.platform.spacetech.io
+spec:
+  group: platform.spacetech.io
+  names:
+    kind: AKSGitOpsPlatform
+    plural: aksgitotsplatforms
+  claimNames:
+    kind: AKSGitOpsPlatformClaim
+    plural: aksgitotsplatformclaims
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required:
+                - parameters
+              properties:
+                parameters:
+                  type: object
+                  required:
+                    - projectName
+                    - subscriptionId
+                    - tenantId
+                    - location
+                    - acrName
+                    - kvSuffix
+                    - crossplaneSpObjectId
+                  properties:
+                    projectName:
+                      type: string
+                      description: "Base name for all resources (e.g. rocketteam)"
+                    subscriptionId:
+                      type: string
+                      description: "Azure Subscription ID"
+                    tenantId:
+                      type: string
+                      description: "Azure AD Tenant ID"
+                    location:
+                      type: string
+                      description: "Azure region (e.g. westeurope)"
+                    acrName:
+                      type: string
+                      description: "ACR name — alphanumeric only (e.g. acrrocketteam)"
+                    kvSuffix:
+                      type: string
+                      description: "4-char suffix for Key Vault name uniqueness"
+                    crossplaneSpObjectId:
+                      type: string
+                      description: "Object ID of the Crossplane Service Principal (for KV role assignment)"
+            status:
+              type: object
+              properties:
+                managedIdentityPrincipalId:
+                  type: string
+                  description: "Principal ID of the provisioned Managed Identity"
+                managedIdentityClientId:
+                  type: string
+                  description: "Client ID of the provisioned Managed Identity"
+                kvResourceId:
+                  type: string
+                  description: "Full ARM resource ID of the Key Vault"
+                aksResourceId:
+                  type: string
+                  description: "Full ARM resource ID of the AKS cluster"
