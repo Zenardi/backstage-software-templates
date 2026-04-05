@@ -6,3 +6,5 @@ dist
 build
 .idea
 *.log
+azure-creds.json
+clusterproviderconfig.yaml

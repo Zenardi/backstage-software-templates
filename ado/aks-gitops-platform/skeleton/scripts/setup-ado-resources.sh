@@ -169,30 +169,40 @@ echo "  ✅ Variable Group configured with Key Vault secrets"
 echo ""
 echo "[4/4] Creating project-scoped Agent Pool from org pool: $ADO_ORG_AGENT_POOL..."
 
-PROJECT_POOL_NAME="$ADO_ORG_AGENT_POOL"
-EXISTING_POOL=$(az pipelines pool list \
-  --pool-type projectAgentPool \
-  --query "[?name=='$PROJECT_POOL_NAME'].id" -o tsv 2>/dev/null || echo "")
+# Retrieve project ID
+PROJECT_ID=$(az devops project show \
+  --project "$ADO_PROJECT" \
+  --query id -o tsv)
 
-if [[ -z "$EXISTING_POOL" ]]; then
-  # Get the org-scoped pool queue ID
-  ORG_POOL_ID=$(az pipelines pool list \
-    --pool-type organization \
-    --query "[?name=='$ADO_ORG_AGENT_POOL'].id" -o tsv 2>/dev/null || echo "")
+# Check if project-scoped queue already exists
+EXISTING_QUEUE=$(az rest \
+  --method GET \
+  --url "https://dev.azure.com/$ADO_ORGANIZATION/$ADO_PROJECT/_apis/distributedtask/queues?api-version=7.0" \
+  --query "value[?name=='$ADO_ORG_AGENT_POOL'].id" \
+  --output tsv 2>/dev/null || echo "")
 
-  if [[ -n "$ORG_POOL_ID" ]]; then
-    az pipelines queue create \
-      --name "$PROJECT_POOL_NAME" \
-      --pool-id "$ORG_POOL_ID" \
-      --authorize true \
-      --output none 2>/dev/null || true
-    echo "  ✅ Project-scoped Agent Pool created: $PROJECT_POOL_NAME"
+if [[ -z "$EXISTING_QUEUE" ]]; then
+  # Resolve org-scoped pool ID
+  ORG_POOL_ID=$(az rest \
+    --method GET \
+    --url "https://dev.azure.com/$ADO_ORGANIZATION/_apis/distributedtask/pools?poolName=$ADO_ORG_AGENT_POOL&api-version=7.0" \
+    --query "value[0].id" \
+    --output tsv 2>/dev/null || echo "")
+
+  if [[ -z "$ORG_POOL_ID" ]]; then
+    echo "  ⚠️  Org-scoped pool '$ADO_ORG_AGENT_POOL' not found. Skipping."
   else
-    echo "  ⚠️  Org-scoped pool '$ADO_ORG_AGENT_POOL' not found. Skipping project pool creation."
-    echo "     Once the agents are running in AKS, you can create the project pool manually."
+    # Create project-scoped queue linked to org pool, granting access to all pipelines
+    az rest \
+      --method POST \
+      --url "https://dev.azure.com/$ADO_ORGANIZATION/$ADO_PROJECT/_apis/distributedtask/queues?authorizePipelines=true&api-version=7.0" \
+      --body "{\"name\":\"$ADO_ORG_AGENT_POOL\",\"pool\":{\"id\":$ORG_POOL_ID},\"projectId\":\"$PROJECT_ID\",\"authorizeAllPipelines\":true}" \
+      --headers "Content-Type=application/json" \
+      --output none
+    echo "  ✅ Project-scoped Agent Pool created: $ADO_ORG_AGENT_POOL (linked to org pool ID: $ORG_POOL_ID, all pipelines authorized)"
   fi
 else
-  echo "  ✅ Project-scoped Agent Pool already exists: $PROJECT_POOL_NAME"
+  echo "  ✅ Project-scoped Agent Pool already exists: $ADO_ORG_AGENT_POOL (ID: $EXISTING_QUEUE)"
 fi
 
 echo ""

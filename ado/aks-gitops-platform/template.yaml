@@ -234,6 +234,15 @@ spec:
             project: ${{parameters.ado_project}}
             repo: ${{parameters.project_name}}-gitops-platform
 
+    - id: ensure-project
+      name: Ensure Azure DevOps Project Exists
+      action: azure:project:ensure
+      input:
+        organization: ${{parameters.ado_organization}}
+        project: ${{parameters.ado_project}}
+        description: "GitOps Platform project for ${{parameters.project_name}}"
+        visibility: private
+
     - id: publish
       name: Publish to Azure DevOps
       action: publish:azure
