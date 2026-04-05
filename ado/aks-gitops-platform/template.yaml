@@ -243,6 +243,14 @@ spec:
         description: "GitOps Platform project for ${{parameters.project_name}}"
         visibility: private
 
+    - id: ensure-agent-pool
+      name: Ensure Project-Scoped Agent Pool Exists
+      action: azure:agentpool:ensure
+      input:
+        organization: ${{parameters.ado_organization}}
+        project: ${{parameters.ado_project}}
+        poolName: ${{parameters.ado_org_agent_pool}}
+
     - id: publish
       name: Publish to Azure DevOps
       action: publish:azure
