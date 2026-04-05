@@ -24,8 +24,8 @@ variables:
   ADO_AGENTS_COUNT:      "${{values.ado_agents_count}}"
   CROSSPLANE_SP_CLIENT_ID:   "${{values.crossplane_sp_client_id}}"
   CROSSPLANE_SP_OBJECT_ID:   "${{values.crossplane_sp_object_id}}"
-  CROSSPLANE_SP_CLIENT_SECRET: "${{values.crossplane_sp_client_secret}}"
-  ARGOCD_ADO_PAT:        "${{values.argocd_ado_pat}}"
+  CROSSPLANE_SP_CLIENT_SECRET: ""  # injected at pipeline run time via Backstage — never stored in git
+  ARGOCD_ADO_PAT:        ""  # injected at pipeline run time via Backstage — never stored in git
 
 stages:
 

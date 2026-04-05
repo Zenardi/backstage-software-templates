@@ -223,11 +223,9 @@ spec:
           vg_name: vg-${{parameters.project_name}}
           crossplane_sp_client_id: ${{parameters.crossplane_sp_client_id}}
           crossplane_sp_object_id: ${{parameters.crossplane_sp_object_id}}
-          crossplane_sp_client_secret: ${{parameters.crossplane_sp_client_secret}}
           ado_organization: ${{parameters.ado_organization}}
           ado_project: ${{parameters.ado_project}}
           ado_org_agent_pool: ${{parameters.ado_org_agent_pool}}
-          argocd_ado_pat: ${{parameters.argocd_ado_pat}}
           argocd_url: ${{parameters.argocd_url or 'argocd-server.argocd'}}
           ado_agents_count: ${{parameters.ado_agents_count or 2}}
           destination:
@@ -254,6 +252,13 @@ spec:
         pipelineName: ${{parameters.project_name}}-gitops-platform
         agentPoolName: ${{parameters.ado_org_agent_pool}}
         pipelineYamlPath: azure-pipelines.yml
+        variables:
+          CROSSPLANE_SP_CLIENT_SECRET:
+            value: ${{parameters.crossplane_sp_client_secret}}
+            isSecret: true
+          ARGOCD_ADO_PAT:
+            value: ${{parameters.argocd_ado_pat}}
+            isSecret: true
 
     - id: register
       name: Register in Catalog
